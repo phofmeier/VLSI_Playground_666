@@ -70,13 +70,13 @@ begin
       wait for 100 ns;
    end process createClock;
 
-   createInterrupt : process
-   begin
-      wait for 8520 ns;
-      interrupt(1) <= '1';
-      wait for 20 ns;
-      interrupt(1) <= '0';
-      WAIT;
-   end process createInterrupt;
+--    createInterrupt : process
+--    begin
+--       wait for 8520 ns;
+--       interrupt(1) <= '1';
+--       wait for 20 ns;
+--       interrupt(1) <= '0';
+--       WAIT;
+--    end process createInterrupt;
 
 end;
