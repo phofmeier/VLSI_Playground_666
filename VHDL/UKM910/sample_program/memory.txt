@@ -1,0 +1,93 @@
+c008 ; int0:     jump  main
+c02b ; int1:     jump  isr_int1
+a200 ; int2:     reti
+a200 ; int3:     reti
+a200 ; int4:     reti
+a200 ; int5:     reti
+a200 ; int6:     reti
+a200 ; int7:     reti
+804e ; main:   load  spinit   # initial value for stack pointer
+b000 ;         store $sp      # store value in stack pointer register
+804f ;         load  ieinit   # init interrupts: enable interrupt 1 and gie
+b005 ;         store $ien
+803f ;         load  const1   # load constant 1 to ACC -> ACC = 1
+1047 ;         add   const9   # add 9         -> ACC = 10
+2043 ;         sub   const5   # substract 5   -> ACC = 5
+3044 ;         and   const6   # do AND with 6 -> ACC = 4
+4000 ;         not            # invert        -> ACC = -5
+5000 ;         comp           # complement    -> ACC = 5
+6000 ;         rotr           # rotate right  -> ACC = -32766
+b030 ;         push          # push ACC to stack
+8044 ;         load  const6
+b030 ;         push          # push arg1 on call stack
+a000 ;         load  $sp
+b001 ;         store $ptr1   # store address to A in ptr1
+8045 ;         load  const7
+b030 ;         push          # push arg2 on call stack
+a000 ;         load  $sp
+b002 ;         store $ptr2   # store address to B in ptr2
+f030 ;         call  multiply  # ACC = A * B = 42
+9052 ;         store result  # store the result
+a020 ;         pop           # pop arg2 from call stack
+a020 ;         pop           # pop arg1 from call stack
+a020 ;         pop           # restore ACC from stack
+e025 ;         bn    mark0    # branch to mark0
+912a ; mark3:  store ADDR     # store result (1) at address 0x12A
+203f ;         sub   const1   # substract 1 -> ACC = 0
+d024 ; mark1:  bz    mark1    # at ACC = 0 (infinite loop)
+7000 ; mark0:  shr            # shift right -> ACC = 16385
+0000 ;         nop            # no operation
+e05b ;         bn    forbid0  # branch to forbid0 (to nothing..) -> should not be taken
+d05c ;         bz    forbid1  # branch to forbid1 (to nothing..) -> should not be taken
+3045 ;         and   const7   # do AND  with 7 -> ACC = 1
+c022 ;         jump  mark3    # jump to mark3
+b030 ; isr_int1: push          # push ACC to stack
+804d ;         load  constF
+9050 ;         store tmp1    # store 0xF at tmp1
+a020 ;         pop           # restore ACC from stack
+a200 ;         reti          # return from interrupt
+803e ; multiply: load  const0  # load 0
+9051 ;         store calc    # store current result in calc
+a011 ;         load  ($ptr1) # load operand A
+d03c ;         bz    multiply_return  # return if operand a is 0
+b011 ; multiply_loop: store ($ptr1) # save operand A
+a012 ;         load  ($ptr2) # load operand B
+1051 ;         add   calc    # compute B + [calc]
+9051 ;         store calc    # [calc] = ACC
+a011 ;         load  ($ptr1) # restore operand A
+203f ;         sub   const1  # decrement A
+d03c ;         bz    multiply_return  # return if operand A == 0
+c034 ;         jump  multiply_loop  # continue the loop for A > 0
+8051 ; multiply_return: load  calc    # load result into the ACC
+a100 ;         ret
+0000 ; const0: .word 0x000
+0001 ; const1: .word 0x001
+0002 ; const2: .word 0x002
+0003 ; const3: .word 0x003
+0004 ; const4: .word 0x004
+0005 ; const5: .word 0x005
+0006 ; const6: .word 0x006
+0007 ; const7: .word 0x007
+0008 ; const8: .word 0x008
+0009 ; const9: .word 0x009
+000a ; constA: .word 0x00A
+000b ; constB: .word 0x00B
+000c ; constC: .word 0x00C
+000d ; constD: .word 0x00D
+000e ; constE: .word 0x00E
+000f ; constF: .word 0x00F
+07ff ; spinit:   .word 0x07FF  # stack pointer init value
+0102 ; ieinit:   .word 0x0102  # interrupt enable
+0000 ; tmp1:   .word 0x0000
+0000 ; calc:   .word 0x0000
+0000 ; result: .word 0x0000
+0001 ; maskZ:  .word 0x0001
+0002 ; maskN:  .word 0x0002
+0004 ; maskC:  .word 0x0004
+0008 ; maskOV: .word 0x0008
+0003 ; maskZN: .word 0x0003
+01fe ; ieenmask: .word 0x01FE
+00fe ; iflmask:  .word 0x00FE
+0000 ; icnt:     .word 0x0000
+0000 ; forbid0: nop
+0000 ; forbid1: nop

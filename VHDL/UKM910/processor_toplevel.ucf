@@ -1,0 +1,10 @@
+# UCF Definiton file for calculator
+#  ! Please note that you need to adjust the signal names  !
+#  ! in this file to the signal names in your design       !
+
+NET "clk" TNM_NET = clk;
+TIMESPEC TS_clk = PERIOD "clk" 20 ns HIGH 50%;
+
+# connect clock to on-board clock source, reset slide switch SW0
+NET "clk"    LOC = "C9"  | IOSTANDARD = LVCMOS33;
+NET "reset"  LOC = "L13" | IOSTANDARD = LVTTL | PULLUP;
