@@ -55,30 +55,53 @@ architecture rtl of debug_module is
 
   signal rot_event        : std_logic;
   signal rot_dir          : std_logic;
+  
+   signal outBuff : std_logic_vector(15 downto 0) := (others => '0');
+   signal enOut : std_logic := '0';
 
 begin
 
   -- handles the communication with the processor through the data bus
   bus_handler: process (rst, clk)
   begin
+--    if rst = '1' then
+--      dataIO        <= (others => 'Z');
+--      led_toggle_en <= (others => '0');
+--      led_state     <= x"AA";
+--    elsif rising_edge(clk) then
+--      -- processor writes to this component
+--      if wren = '1' then
+--        led_toggle_en <= dataIO(15 downto 8);
+--        led_state     <= dataIO( 7 downto 0);
+--      end if;
+--      -- processor reads from this component
+--      if oe = '1' then
+--        dataIO  <= rot_push&rot_left&rot_right&"00000"&led_out;
+--      else
+--        dataIO  <= (others => 'Z');
+--      end if;
+--    end if;
     if rst = '1' then
-      dataIO        <= (others => 'Z');
-      led_toggle_en <= (others => '0');
-      led_state     <= x"AA";
+      led_toggle_en  <= (others => '0');
+      led_state      <= x"AA";
+      enOut          <= '0';
     elsif rising_edge(clk) then
       -- processor writes to this component
       if wren = '1' then
         led_toggle_en <= dataIO(15 downto 8);
         led_state     <= dataIO( 7 downto 0);
       end if;
-      -- processor reads from this component
       if oe = '1' then
-        dataIO  <= rot_push&rot_left&rot_right&"00000"&led_out;
+         outBuff <= rot_push&rot_left&rot_right&"00000"&led_out;
+         enOut   <= '1';
       else
-        dataIO  <= (others => 'Z');
+         enOut   <= '0';
       end if;
     end if;
+    outBuff(12 downto 8) <= (others => '0');
   end process bus_handler;
+    
+    dataIO <= outBuff when (enOut = '1') else (others => 'Z');
 
   -- process the rotary encoder and button inputs, reset the values, when they
   -- were read by the processor bus
