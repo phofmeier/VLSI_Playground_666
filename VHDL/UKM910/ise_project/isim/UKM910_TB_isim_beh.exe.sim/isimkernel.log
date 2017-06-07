@@ -1,0 +1,10 @@
+Command line:
+   UKM910_TB_isim_beh.exe
+     -simmode  gui
+     -simrunnum  0
+     -socket  52937
+
+Wed Jun 07 19:32:23 2017
+
+
+ Elaboration Time: 0.296875 sec
