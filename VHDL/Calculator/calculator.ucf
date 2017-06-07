@@ -1,0 +1,21 @@
+# UCF Definiton file for calculator
+#  ! Please note that you need to adjust the signal names  !
+#  ! in this file to the signal names in your design       !
+
+NET "clk" TNM_NET = clk;
+TIMESPEC TS_clk = PERIOD "clk" 20 ns HIGH 50%;
+
+# connect clock to on-board clock source, reset slide switch SW0
+NET "clk"    LOC = "C9"  | IOSTANDARD = LVCMOS33 ;
+NET "reset"  LOC = "L13" | IOSTANDARD = LVTTL  | PULLUP ;
+
+# connect VGA interface
+NET "hsync"  LOC = "F15" | IOSTANDARD = LVTTL  | DRIVE = 8  | SLEW = FAST ;
+NET "blue"   LOC = "G15" | IOSTANDARD = LVTTL  | DRIVE = 8  | SLEW = FAST ;
+NET "green"  LOC = "H15" | IOSTANDARD = LVTTL  | DRIVE = 8  | SLEW = FAST ;
+NET "red"    LOC = "H14" | IOSTANDARD = LVTTL  | DRIVE = 8  | SLEW = FAST ;
+NET "vsync"  LOC = "F14" | IOSTANDARD = LVTTL  | DRIVE = 8  | SLEW = FAST ;
+
+# connect PS2 interface
+NET "ps2clk"  LOC = "G14" | IOSTANDARD = LVCMOS33 | DRIVE = 8 | SLEW = SLOW;
+NET "ps2data" LOC = "G13" | IOSTANDARD = LVCMOS33 | DRIVE = 8 | SLEW = SLOW;
