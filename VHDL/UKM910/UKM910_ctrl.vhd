@@ -42,6 +42,9 @@ architecture Behavioral of UKM910_ctrl is
       EXECUTE_RETURN, EXECUTE_CALL1, EXECUTE_CALL2 );
 
    signal state, next_state : STATES := RESET;
+   signal icurrent : std_logic_vector(7 downto 0) := (others => '0');
+   signal regICURR : std_logic_vector(7 downto 0);
+   signal enICURR : std_logic;
 
    constant ALU_ZERO       : std_logic_vector(3 downto 0) := "0000";
    constant ALU_ADD        : std_logic_vector(3 downto 0) := "0001";
@@ -124,10 +127,12 @@ state_register: process(clk, res) begin
    end if;
 end process;
 
-control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags) begin
+control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, regICURR) begin
    -- Default control outputs (typical value)
    ireset   <= "00000000";
+   icurrent <= "00000000";
    ivector  <= "000";
+   enICURR  <= '0';
    enACC    <= '0';
    enPC     <= '0';
    enIR     <= '0';
@@ -380,6 +385,7 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags) beg
             selIEN      <= SEL_IEN_CTRL;
             gie         <= '1';  -- global interrup enable
             enIEN       <= '1';
+            ireset      <= regICURR;
          end if;
 
       when EXECUTE_CALL1 =>
@@ -406,30 +412,31 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags) beg
       when EXT_INT2 =>
          -- address interrupt vector and reset the interrupt flag
          if ( (ien(0) and iflags(0)) = '1' ) then
-            ireset   <= "00000001";
+            icurrent <= "00000001";
             ivector  <= "000";
          elsif ( (ien(1) and iflags(1)) = '1' ) then
-            ireset   <= "00000010";
+            icurrent <= "00000010";
             ivector  <= "001";
          elsif ( (ien(2) and iflags(2)) = '1' ) then
-            ireset   <= "00000100";
+            icurrent <= "00000100";
             ivector  <= "010";
          elsif ( (ien(3) and iflags(3)) = '1' ) then
-            ireset   <= "00001000";
+            icurrent <= "00001000";
             ivector  <= "011";
          elsif ( (ien(4) and iflags(4)) = '1' ) then
-            ireset   <= "00010000";
+            icurrent <= "00010000";
             ivector  <= "100";
          elsif ( (ien(5) and iflags(5)) = '1' ) then
-            ireset   <= "00100000";
+            icurrent <= "00100000";
             ivector  <= "101";
          elsif ( (ien(6) and iflags(6)) = '1' ) then
-            ireset   <= "01000000";
+            icurrent <= "01000000";
             ivector  <= "110";
          elsif ( (ien(7) and iflags(7)) = '1' ) then
-            ireset   <= "10000000";
+            icurrent <= "10000000";
             ivector  <= "111";
          end if;
+         enICURR     <= '1';
          enIFLAG     <= '1';
          oe          <= '1';
          selAddr     <= SEL_ADDR_IVECT;
@@ -440,6 +447,14 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags) beg
       when others =>
          next_state  <= RESET;
    end case;
+end process;
+
+ireset_register: process(clk) begin
+   if rising_edge(clk) then
+      if enICURR = '1' then
+         regICURR <= icurrent;
+      end if;
+   end if;
 end process;
 
 end Behavioral;
