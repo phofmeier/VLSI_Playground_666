@@ -18,7 +18,7 @@ use work.all;
 entity UKM910 is
    port ( clk, reset : in std_logic;
           interrupt  : in std_logic_vector (7 downto 0);
-          oe, wren   : out std_logic;
+          oe, we   : out std_logic;
           addressbus : out std_logic_vector (11 downto 0);
           databus    : inout std_logic_vector (15 downto 0) );
 end UKM910;
@@ -28,7 +28,8 @@ architecture Behavioral of UKM910 is
    signal result        : std_logic_vector(15 downto 0);
    signal A_bus, B_bus  : std_logic_vector(15 downto 0);
    signal ALUfunc       : std_logic_vector(3 downto 0);
-   signal isync         : std_logic_vector(7 downto 0);
+   signal iinternal     : std_logic_vector(7 downto 0);
+   signal ibuff         : std_logic_vector(7 downto 0);
    signal ireset        : std_logic_vector(7 downto 0);
    signal ivector       : std_logic_vector(2 downto 0);
    signal nBit          : std_logic;
@@ -113,7 +114,7 @@ begin
       selIEN      => selIEN,
       selIFLAG    => selIFLAG,
       oe          => oe,
-      wren        => wren,
+      we          => we,
       gie         => gie,
       ALUfunc     => ALUfunc,
       nBit        => nBit,
@@ -134,14 +135,20 @@ begin
       n        => ALUflags(1),
       cout     => ALUflags(2),
       ov       => ALUflags(3) );
+   
+--   tri_data: entity tristate_N
+--   generic map (N => 16)
+--   port map(
+--      T => enRes,
+--      I => result,
+--      O => databus );
 
-   async_unit: entity edge_detect
+   int_unit: entity edge_detect
    generic map (N => 8)
    port map(
-      clk      => clk,
       input    => interrupt,
       reset    => ireset,
-      output   => isync );
+      output   => ibuff );
 
    addr_mux: process(selAddr, ivector, regPC, regIR, result, regSP, regPTR1, regPTR2, regPTR3) begin
       case ( selAddr ) is
@@ -239,13 +246,14 @@ begin
             if selIFLAG = SEL_IFLAG_RES then
                regIFLAG <= result(7 downto 0);
             else
-               regIFLAG <= (isync or regIFLAG) and (not ireset);
+               regIFLAG <= iinternal and (not ireset);
             end if;
          end if;
       end if;
    end process;
 
    databus <= result when (enRes = '1') else (others => 'Z');
+   iinternal <= ibuff or regIFLAG;
 
 end Behavioral;
 

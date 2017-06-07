@@ -28,7 +28,7 @@ entity UKM910_ctrl is
           selB, selAddr       : out std_logic_vector(2 downto 0);
           selPSW              : out std_logic;
           selIEN, selIFLAG    : out std_logic;
-          oe, wren, gie       : out std_logic;
+          oe, we, gie         : out std_logic;
           ALUfunc             : out std_logic_vector(3 downto 0);
           nBit, shiftrot      : out std_logic );
 end UKM910_ctrl;
@@ -145,7 +145,7 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags) beg
    selPSW   <= SEL_PSW_CTRL;
    selIEN   <= SEL_IEN_CTRL;
    selIFLAG <= SEL_IFLAG_EXT;
-   wren     <= '0';
+   we       <= '0';
    oe       <= '0';
    gie      <= '0';
    ALUfunc  <= (others => '-');
@@ -300,7 +300,7 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags) beg
          end if;
 
       when EXECUTE_STOREI =>
-         wren        <= '1';
+         we          <= '1';
          enRes       <= '1';
          ALUfunc     <= ALU_EQ_A;
          selAddr     <= '1' & instruction(1 downto 0);
@@ -365,7 +365,7 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags) beg
          next_state  <= FETCH1;
 
       when EXECUTE_STORE =>
-         wren        <= '1';
+         we          <= '1';
          enRes       <= '1';
          ALUfunc     <= ALU_EQ_A;
          selAddr     <= SEL_ADDR_IR;
@@ -383,7 +383,7 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags) beg
          end if;
 
       when EXECUTE_CALL1 =>
-         wren        <= '1';
+         we          <= '1';
          enRes       <= '1';
          selAddr     <= SEL_ADDR_SP;
          selB        <= SEL_B_PC;
@@ -397,7 +397,7 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags) beg
 
       when EXT_INT1 =>
          -- decrement SP address interrupt vector
-         wren        <= '1';
+         we          <= '1';
          enRes       <= '1';
          selAddr     <= SEL_ADDR_SP;
          selB        <= SEL_B_PC;
