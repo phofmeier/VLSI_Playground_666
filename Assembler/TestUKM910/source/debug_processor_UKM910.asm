@@ -187,12 +187,12 @@ bn_ok:
 	store	debugAddr
 # Debug
 	call wait_for_knop
-	load	Array_1_addr
+	load	test_var_addr
 	store	$ptr2
 	load	const_10
 	store	($ptr2)inc
 	load	const_1
-	load	Array_1_addr
+	load	test_var_addr
 	store	debugAddr
 # STORERIinc/LOADRIinc 8 -----------------------------
 	call wait_for_knop
