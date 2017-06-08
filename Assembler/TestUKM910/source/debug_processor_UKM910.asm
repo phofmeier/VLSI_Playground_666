@@ -190,7 +190,7 @@ bn_ok:
 	load	test_var_addr
 	store	$ptr2
 	load	const_10
-	store	($ptr2)
+	store	($ptr2)inc
 	load	const_1
 	load	test_var
 	store	debugAddr
@@ -413,6 +413,6 @@ accu_int_save:	.word	0x0000	# Variable for saving the accu if an interrupt occur
 
 
 # Addresses
-test_var_addr:	getaddr	test_var # address  of test_var
+test_var_addr:	getaddr	test_var << 1 # address  of test_var
 Array_1_addr:	getaddr	Array_1 # address of Array Pos 1
 Array_3_addr:	getaddr Array_3 # address of Array Pos 3
