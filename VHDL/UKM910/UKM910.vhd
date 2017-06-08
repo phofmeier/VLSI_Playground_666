@@ -73,7 +73,7 @@ architecture Behavioral of UKM910 is
    constant SEL_ADDR_IVECT : std_logic_vector(2 downto 0) := "000";
    constant SEL_ADDR_PC    : std_logic_vector(2 downto 0) := "001";
    constant SEL_ADDR_IR    : std_logic_vector(2 downto 0) := "010";
-   constant SEL_ADDR_RESULT: std_logic_vector(2 downto 0) := "111";
+   constant SEL_ADDR_RESULT: std_logic_vector(2 downto 0) := "011";
    constant SEL_ADDR_SP    : std_logic_vector(2 downto 0) := "100";
    constant SEL_ADDR_PTR1  : std_logic_vector(2 downto 0) := "101";
    constant SEL_ADDR_PTR2  : std_logic_vector(2 downto 0) := "110";
@@ -135,7 +135,7 @@ begin
       n        => ALUflags(1),
       cout     => ALUflags(2),
       ov       => ALUflags(3) );
-   
+
 --   tri_data: entity tristate_N
 --   generic map (N => 16)
 --   port map(
