@@ -376,8 +376,8 @@ const_FFFD:		.word	0xFFFD	# konstante 0xFFFD
 const_0xFFFF:	.word	0xFFFF	# konstant 0xFFFF
 const_0x00AA:	.word	0x00AA	# konstant 0x00AA
 const_5:		.word	0x0005	# konstant 5
-const_2:		.word	0x0005	# konstant 2
-const_3:		.word	0x0005	# konstant 3
+const_2:		.word	0x0002	# konstant 2
+const_3:		.word	0x0003	# konstant 3
 const_6:		.word	0x0006	# konstant 6
 const_1:		.word	0x0001	# konstant 1
 const_11:		.word	0x000B	# konstant 11
