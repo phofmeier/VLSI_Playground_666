@@ -192,7 +192,7 @@ bn_ok:
 	load	const_10
 	store	($ptr2)
 	load	const_1
-	load	test_var_addr
+	load	($ptr2)
 	store	debugAddr
 # STORERIinc/LOADRIinc 8 -----------------------------
 	call wait_for_knop
