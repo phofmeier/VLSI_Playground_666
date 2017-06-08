@@ -220,29 +220,31 @@ bn_ok:
 	call wait_for_knop
 	load	Array_3_addr
 	add		const_1		#increment by 1
-	store	$ptr2
+	store	$ptr1
 	load	const_6
-	store	dec($ptr2)
+	store	dec($ptr1)
 	load	const_5
-	store	dec($ptr2)
+	store	dec($ptr1)
 	load	const_9
-	store	dec($ptr2)
+	store	dec($ptr1)
 	load	Array_3_addr
 	add		const_1		#increment by 1
-	store	$ptr2
-	load	dec($ptr2)
+	store	$ptr1
+	load	dec($ptr1)
 	store	test_var
-	load	dec($ptr2)
+	load	dec($ptr1)
 	add		test_var
 	store	test_var
-	load	dec($ptr2)
+	load	dec($ptr1)
 	add		test_var
 	store	test_var
 	sub		const_11
 	store	debugAddr
+
+	
 # OVERFLOW 10 ----------------------------------------
 	call	wait_for_knop
-	load	const_0xFFFF
+	load	const_0x7FFF
 	add		const_10
 	# OVERFLOW should occures
 	load 	$psw
@@ -383,6 +385,7 @@ const_9:        .word   0x0009  # konstant 9
 const_4:		.word	0x0004	# konstant 4
 const_FFFD:		.word	0xFFFD	# konstante 0xFFFD
 const_0xFFFF:	.word	0xFFFF	# konstant 0xFFFF
+const_0x7FFF:	.word	0x7FFF	# konstant 0x7FFF
 const_0x00AA:	.word	0x00AA	# konstant 0x00AA
 const_5:		.word	0x0005	# konstant 5
 const_2:		.word	0x0002	# konstant 2
