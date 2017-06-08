@@ -381,7 +381,7 @@ const_3:		.word	0x0003	# konstant 3
 const_6:		.word	0x0006	# konstant 6
 const_1:		.word	0x0001	# konstant 1
 const_11:		.word	0x000B	# konstant 11
-const_16:		.word	0x000F	# konstant 16
+const_16:		.word	0x0010	# konstant 16
 
 # Addresses
 const_10_addr:	getaddr	const_10 # address  of const_10
