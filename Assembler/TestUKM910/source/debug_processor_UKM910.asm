@@ -186,11 +186,11 @@ bn_ok:
 	sub		const_3
 	store	debugAddr
 # Debug
-	call wait_for_knop
+	call 	wait_for_knop
 	load	test_var_addr
 	store	$ptr2
 	load	const_10
-	store	($ptr2)inc
+	store	($ptr2)
 	load	const_1
 	load	test_var_addr
 	store	debugAddr
