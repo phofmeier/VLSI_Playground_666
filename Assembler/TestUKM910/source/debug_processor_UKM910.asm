@@ -220,22 +220,22 @@ bn_ok:
 	call wait_for_knop
 	load	Array_3_addr
 	add		const_1		#increment by 1
-	store	$ptr3
+	store	$ptr2
 	load	const_6
-	store	dec($ptr3)
+	store	dec($ptr2)
 	load	const_5
-	store	dec($ptr3)
+	store	dec($ptr2)
 	load	const_9
-	store	dec($ptr3)
+	store	dec($ptr2)
 	load	Array_3_addr
 	add		const_1		#increment by 1
-	store	$ptr3
-	load	dec($ptr3)
+	store	$ptr2
+	load	dec($ptr2)
 	store	test_var
-	load	dec($ptr3)
+	load	dec($ptr2)
 	add		test_var
 	store	test_var
-	load	dec($ptr3)
+	load	dec($ptr2)
 	add		test_var
 	store	test_var
 	sub		const_11
