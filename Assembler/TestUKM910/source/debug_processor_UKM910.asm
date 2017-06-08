@@ -185,29 +185,38 @@ bn_ok:
 	load	($ptr2)
 	sub		const_3
 	store	debugAddr
+# Debug
+	call wait_for_knop
+	load	Array_1_addr
+	store	$ptr2
+	load	const_10
+	store	($ptr2)inc
+	load	const_1
+	load	Array_1_addr
+	store	debugAddr
 # STORERIinc/LOADRIinc 8 -----------------------------
 	call wait_for_knop
 	load	Array_1_addr
-	store	$ptr3
+	store	$ptr2
 	load	const_10
-	store	($ptr3)inc
+	store	($ptr2)inc
 	load	const_9
-	store	($ptr3)inc
+	store	($ptr2)inc
 	load	const_5
-	store	($ptr3)inc
+	store	($ptr2)inc
 	load	Array_1_addr
-	store	$ptr3
-	load	($ptr3)inc
+	store	$ptr2
+	load	($ptr2)inc
 	store	test_var
-	load	($ptr3)inc
+	load	($ptr2)inc
 	add		test_var
 	store	test_var
-	load	($ptr3)inc
+	load	($ptr2)inc
 	add		test_var
 	store	test_var
 	sub		const_16
 	store	debugAddr
-# STORERIinc/LOADRIdec 9	---------------------------------
+# STORERIdec/LOADRIdec 9	---------------------------------
 	call wait_for_knop
 	load	Array_3_addr
 	add		const_1		#increment by 1
