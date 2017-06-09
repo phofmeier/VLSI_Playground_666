@@ -11,14 +11,11 @@ use IEEE.std_logic_1164.all;
 
 use work.all;
 
--- The 'reset' signal is asynchronous and will reset the state machine immediately
--- Interrupt 0 has the same effect as a 'reset' signal but can be controlled
--- through the IEN register. Furthermore it is buffered and synchronized with the
--- fetch phase of the state machine.
+
 entity UKM910 is
    port ( clk, reset : in std_logic;
+          oe, wren   : out std_logic;
           interrupt  : in std_logic_vector (7 downto 0);
-          oe, we   : out std_logic;
           addressbus : out std_logic_vector (11 downto 0);
           databus    : inout std_logic_vector (15 downto 0) );
 end UKM910;
@@ -28,13 +25,12 @@ architecture Behavioral of UKM910 is
    signal result        : std_logic_vector(15 downto 0);
    signal A_bus, B_bus  : std_logic_vector(15 downto 0);
    signal ALUfunc       : std_logic_vector(3 downto 0);
-   signal iinternal     : std_logic_vector(7 downto 0);
-   signal ibuff         : std_logic_vector(7 downto 0);
+   signal isync         : std_logic_vector(7 downto 0);
    signal ireset        : std_logic_vector(7 downto 0);
-   signal ivector       : std_logic_vector(2 downto 0);
    signal nBit          : std_logic;
    signal shiftrot      : std_logic;
    signal gie           : std_logic;
+   signal opcode        : std_logic_vector(11 downto 0);
    signal ALUflags      : std_logic_vector(3 downto 0);
    -- MUX select lines
    signal selA          : std_logic_vector(1 downto 0);
@@ -47,15 +43,15 @@ architecture Behavioral of UKM910 is
    signal enPSW, enIEN, enIFLAG        : std_logic;
    signal enSP, enPTR1, enPTR2, enPTR3 : std_logic;
    -- Register definitions
-   signal regPC         : std_logic_vector(11 downto 0) := (others => '0');
-   signal regIR, regACC : std_logic_vector(15 downto 0) := (others => '0');
-   signal regSP         : std_logic_vector(11 downto 0) := (others => '0');
-   signal regPTR1       : std_logic_vector(11 downto 0) := (others => '0');
-   signal regPTR2       : std_logic_vector(11 downto 0) := (others => '0');
-   signal regPTR3       : std_logic_vector(11 downto 0) := (others => '0');
-   signal regPSW        : std_logic_vector(3 downto 0)  := (others => '0');
-   signal regIEN        : std_logic_vector(8 downto 0)  := (others => '0');
-   signal regIFLAG      : std_logic_vector(7 downto 0)  := (others => '0');
+   signal regPC         : std_logic_vector(11 downto 0);
+   signal regIR, regACC : std_logic_vector(15 downto 0);
+   signal regSP         : std_logic_vector(11 downto 0);
+   signal regPTR1       : std_logic_vector(11 downto 0);
+   signal regPTR2       : std_logic_vector(11 downto 0);
+   signal regPTR3       : std_logic_vector(11 downto 0);
+   signal regPSW        : std_logic_vector(3 downto 0);
+   signal regIEN        : std_logic_vector(8 downto 0);
+   signal regIFLAG      : std_logic_vector(7 downto 0);
 
    constant SEL_A_PSW      : std_logic_vector(1 downto 0) := "00";
    constant SEL_A_IEN      : std_logic_vector(1 downto 0) := "01";
@@ -70,10 +66,8 @@ architecture Behavioral of UKM910 is
    constant SEL_B_PTR2     : std_logic_vector(2 downto 0) := "110";
    constant SEL_B_PTR3     : std_logic_vector(2 downto 0) := "111";
 
-   constant SEL_ADDR_IVECT : std_logic_vector(2 downto 0) := "000";
    constant SEL_ADDR_PC    : std_logic_vector(2 downto 0) := "001";
    constant SEL_ADDR_IR    : std_logic_vector(2 downto 0) := "010";
-   constant SEL_ADDR_RESULT: std_logic_vector(2 downto 0) := "011";
    constant SEL_ADDR_SP    : std_logic_vector(2 downto 0) := "100";
    constant SEL_ADDR_PTR1  : std_logic_vector(2 downto 0) := "101";
    constant SEL_ADDR_PTR2  : std_logic_vector(2 downto 0) := "110";
@@ -90,38 +84,36 @@ begin
 
    ctrl_unit: entity UKM910_ctrl
    port map(
-      clk         => clk,
-      res         => reset,
-      ien         => regIEN,
-      iflags      => regIFLAG,
-      ireset      => ireset,
-      ivector     => ivector,
-      enPC        => enPC,
-      enIR        => enIR,
-      enACC       => enACC,
-      enSP        => enSP,
-      enPTR1      => enPTR1,
-      enPTR2      => enPTR2,
-      enPTR3      => enPTR3,
-      enPSW       => enPSW,
-      enIEN       => enIEN,
-      enIFLAG     => enIFLAG,
-      enRes       => enRes,
-      selAddr     => selAddr,
-      selA        => selA,
-      selB        => selB,
-      selPSW      => selPSW,
-      selIEN      => selIEN,
-      selIFLAG    => selIFLAG,
-      oe          => oe,
-      we          => we,
-      gie         => gie,
-      ALUfunc     => ALUfunc,
-      nBit        => nBit,
-      shiftrot    => shiftrot,
-      instruction => regIR,
-      zero_flag   => regPSW(0),
-      neg_flag    => regPSW(1) );
+      clk      => clk,
+      res      => reset,
+      ien      => regIEN,
+      iflags   => regIFLAG,
+      ireset   => ireset,
+      enPC     => enPC,
+      enIR     => enIR,
+      enACC    => enACC,
+      enSP     => enSP,
+      enPTR1   => enPTR1,
+      enPTR2   => enPTR2,
+      enPTR3   => enPTR3,
+      enPSW    => enPSW,
+      enIEN    => enIEN,
+      enIFLAG  => enIFLAG,
+      enRes    => enRes,
+      selAddr  => selAddr,
+      selA     => selA,
+      selB     => selB,
+      selPSW   => selPSW,
+      selIEN   => selIEN,
+      selIFLAG => selIFLAG,
+      oe       => oe,
+      wren     => wren,
+      gie      => gie,
+      ALUfunc  => ALUfunc,
+      nBit     => nBit,
+      shiftrot => shiftrot,
+      opcode   => opcode,
+      ALUflags => regPSW );
 
    alu_unit: entity ALU
    port map(
@@ -131,43 +123,35 @@ begin
       ALUFunc  => ALUFunc,
       nBit     => nBit,
       shiftrot => shiftrot,
-      z        => ALUflags(0),
-      n        => ALUflags(1),
+      n        => ALUflags(0),
+      z        => ALUflags(1),
       cout     => ALUflags(2),
       ov       => ALUflags(3) );
 
---   tri_data: entity tristate_N
---   generic map (N => 16)
---   port map(
---      T => enRes,
---      I => result,
---      O => databus );
-
-   int_unit: entity edge_detect
+   async_unit: entity edge_detect
    generic map (N => 8)
    port map(
+      clk      => clk,
       input    => interrupt,
       reset    => ireset,
-      output   => ibuff );
+      output   => isync );
 
-   addr_mux: process(selAddr, ivector, regPC, regIR, result, regSP, regPTR1, regPTR2, regPTR3) begin
+   addr_mux: process(selAddr, regPC, regIR, regSP, regPTR1, regPTR2, regPTR3) begin
       case ( selAddr ) is
-         when SEL_ADDR_IVECT =>  -- only used for executing interrupt routines
-            addressbus <= (11 downto 3 => '0') & ivector;
          when SEL_ADDR_PC =>
             addressbus <= regPC;
          when SEL_ADDR_IR =>
             addressbus <= regIR(11 downto 0);
-         when SEL_ADDR_RESULT =>  -- only used for LOADIDEC (saves one cycle)
-            addressbus <= result(11 downto 0);
          when SEL_ADDR_SP =>
             addressbus <= regSP;
          when SEL_ADDR_PTR1 =>
             addressbus <= regPTR1;
          when SEL_ADDR_PTR2 =>
             addressbus <= regPTR2;
-         when others =>  -- SEL_ADDR_PTR3
+         when SEL_ADDR_PTR3 =>
             addressbus <= regPTR3;
+         when others =>
+            addressbus <= (others => '-');
       end case;
    end process;
 
@@ -179,7 +163,7 @@ begin
             A_bus <= (15 downto 9 => '0') & regIEN;
          when SEL_A_IFLAG =>
             A_bus <= (15 downto 8 => '0') & regIFLAG;
-         when others =>  -- SEL_A_ACC
+         when others =>
             A_bus <= regACC;
       end case;
    end process;
@@ -246,14 +230,15 @@ begin
             if selIFLAG = SEL_IFLAG_RES then
                regIFLAG <= result(7 downto 0);
             else
-               regIFLAG <= iinternal and (not ireset);
+               regIFLAG <= isync;
             end if;
          end if;
       end if;
    end process;
 
    databus <= result when (enRes = '1') else (others => 'Z');
-   iinternal <= ibuff or regIFLAG;
+   opcode <= regIR(15 downto 4);
+   --ALUflags <= regPSW;
 
 end Behavioral;
 

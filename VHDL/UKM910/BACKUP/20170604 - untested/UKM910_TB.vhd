@@ -25,24 +25,24 @@ use work.all;
 architecture Behavioral of UKM910_TB is
 
    signal oe         :  std_logic;
-   signal we         :  std_logic;
+   signal wren       :  std_logic;
    signal reset      :  std_logic;
    signal clk        :  std_logic;
    signal addressbus :  std_logic_vector (11 downto 0);
    signal databus    :  std_logic_vector (15 downto 0);
-   signal interrupt  :  std_logic_vector (7 downto 0) := (others => '0');
+   signal interrupt  :  std_logic_vector (7 downto 0) := x"00";
 
 begin
 
    ukm: entity UKM910
    port map(
       oe => oe,
-      we => we,
+      wren => wren,
       reset => reset,
       clk => clk,
       addressbus => addressbus,
       databus => databus,
-      interrupt => interrupt
+		interrupt => interrupt
    );
 
    mem: entity memory(Simulation)
@@ -50,7 +50,7 @@ begin
       clk => clk,
       addr => addressbus(10 downto 0),
       dataIO => databus,
-      we => we,
+      wren => wren,
       oe => oe
    );
 
@@ -69,14 +69,5 @@ begin
       clk <= '1';
       wait for 100 ns;
    end process createClock;
-
-   createInterrupt : process
-   begin
-       wait for 8520 ns;
-       interrupt(1) <= '1';
-       wait for 20 ns;
-       interrupt(1) <= '0';
-       wait;
-   end process createInterrupt;
 
 end;

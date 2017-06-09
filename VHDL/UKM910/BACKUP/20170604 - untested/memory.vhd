@@ -33,7 +33,7 @@ entity memory is
     Port ( clk : in  STD_LOGIC;
            addr : in  STD_LOGIC_VECTOR (10 downto 0);
            dataIO : inout  STD_LOGIC_VECTOR (15 downto 0);
-           we : in  STD_LOGIC;
+           wren : in  STD_LOGIC;
            oe : in  STD_LOGIC);
 end memory;
 
@@ -48,7 +48,7 @@ begin
               addr => addr,
               inp  => dataIO,
               outp => outp_int,
-              we   => we );
+              wren => wren );
 					
 	oe_reg: process(clk)
 	begin
@@ -80,7 +80,7 @@ begin
               addr => addr,
               inp  => dataIO,
               outp => outp_int,
-              we => we );
+              wren => wren );
 
    oe_reg: process(clk)
    begin

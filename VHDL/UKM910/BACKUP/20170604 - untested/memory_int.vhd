@@ -34,7 +34,7 @@ entity memory_int is
            addr : in  STD_LOGIC_VECTOR (10 downto 0);
            inp : in  STD_LOGIC_VECTOR (15 downto 0);
            outp : out  STD_LOGIC_VECTOR (15 downto 0);
-           we : in  STD_LOGIC);
+           wren : in  STD_LOGIC);
 end memory_int;
 
 
@@ -60,7 +60,7 @@ begin
 			end loop;
 			init := 1;
 		elsif rising_edge(clk) then
-			if we = '1' then
+			if wren = '1' then
 				data(conv_integer(unsigned(addr))) <= inp;
 				outp <= inp;
 			else
@@ -99,7 +99,7 @@ begin
    mem_ctrl: process(clk)
    begin
        if rising_edge(clk) then
-         if we = '1' then
+         if wren = '1' then
             data(conv_integer(unsigned(addr))) <= inp;
             outp <= inp;
          else

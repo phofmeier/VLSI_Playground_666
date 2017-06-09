@@ -1,35 +1,215 @@
-8012 ;         load  const1   # load constant 1 to ACC -> ACC = 1   [4 cycles]
-101a ;         add   const9   # add 9 -> ACC = 10                   [4 cycles]
-2016 ;         sub   const5   # subtract 5 -> ACC = 5               [4 cycles]
-3017 ;         and   const6   # bitwise AND with 6 -> ACC = 4       [4 cycles]
-4000 ;         not            # negation -> ACC = -5                [4 cycles]
-5000 ;         comp           # complement -> ACC = 5               [4 cycles]
-6000 ;         rotr           # rotate right -> ACC = -32766        [4 cycles]
-e00b ;         bn    mark0    # branch to mark0                     [4 cycles]
-902a ; mark3:  store ADDR     # save result (1) at address 0x02A    [4 cycles]
-2012 ;         sub   const1   # subtract 1 -> ACC = 0               [4 cycles]
-d00a ; mark1:  bz    mark1    # when ACC = 0 (which should be the case here...) stay here forever   [4 cycles]
-7000 ; mark0:  shr            # shift right -> ACC = 16385          [4 cycles]
-0000 ;         nop	      # no operation                            [3 cycles]
-e021 ;         bn    forbid0  # branch to forbid0 (to nowhere...) -> should not be taken            [4 cycles]
-d022 ;         bz    forbid1  # branch to forbid1 (to nowhere...) -> should not be taken            [4 cycles]
-3018 ;         and   const7   # bitwise AND with 7 -> ACC = 1       [4 cycles]
-c008 ;         jump  mark3    # jump to mark3                       [3 cycles]
-0000 ; const0: .word 0x000    # constant 0x0000
-0001 ; const1: .word 0x001    # constant 0x0001
-0002 ; const2: .word 0x002    # constant 0x0002
-0003 ; const3: .word 0x003    # constant 0x0003
-0004 ; const4: .word 0x004    # constant 0x0004
-0005 ; const5: .word 0x005    # constant 0x0005
-0006 ; const6: .word 0x006    # constant 0x0006
-0007 ; const7: .word 0x007    # constant 0x0007
-0008 ; const8: .word 0x008    # constant 0x0008
-0009 ; const9: .word 0x009    # constant 0x0009
-000a ; constA: .word 0x00A    # constant 0x000a
-000b ; constB: .word 0x00B    # constant 0x000b
-000c ; constC: .word 0x00C    # constant 0x000c
-000d ; constD: .word 0x00D    # constant 0x000d
-000e ; constE: .word 0x00E    # constant 0x000e
-000f ; constF: .word 0x00F    # constant 0x000f
-0000 ; forbid0: nop           # jump label forbid0
-0000 ; forbid1: nop    	      # jump label forbid1
+c008 ; int0:   jump  main
+c077 ; int1:   jump  int1sr
+c07f ; int2:   jump  int2sr
+c087 ; int3:   jump  int3sr
+c08f ; int4:   jump  int4sr
+c097 ; int5:   jump  int5sr
+c09f ; int6:   jump  int6sr
+c0a7 ; int7:   jump  int7sr
+80c0 ; main:   load  spinit   # initial value for stack pointer
+b000 ;         store $sp      # store value in stack pointer register
+80b0 ;         load  const1   # load constant 1 to ACC -> ACC = 1
+10b8 ;         add   const9   # add 9         -> ACC = 10
+20b4 ;         sub   const5   # substract 5   -> ACC = 5
+30b5 ;         and   const6   # do AND with 6 -> ACC = 4
+4000 ;         not            # invert        -> ACC = -5
+5000 ;         comp           # complement    -> ACC = 5
+6000 ;         rotr           # rotate right  -> ACC = -32766
+e015 ;         bn    mark0    # branch to mark0
+912a ; mark3:  store ADDR     # store result (1) at address 0x12A
+20b0 ;         sub   const1   # substract 1 -> ACC = 0
+d01b ; mark1:  bz    mark4    # at ACC = 0 (should be the case here...) go to mark4
+7000 ; mark0:  shr            # shift right -> ACC = 16385
+0000 ;         nop            # no operation
+e0d5 ;         bn    forbid0  # branch to forbid0 (to nothing..) -> should not be taken
+d0d6 ;         bz    forbid1  # branch to forbid1 (to nothing..) -> should not be taken
+30b6 ;         and   const7   # do AND  with 7 -> ACC = 1
+c012 ;         jump  mark3    # jump to mark3
+f030 ; mark4:  call  chkptrpsw # call subroutine which checks pointer and psw functionalities
+80d2 ;         load  ieenmask  # enable interrupts 1-7
+b005 ;         store $ien
+80d3 ;         load  iflmask   # set interrupts 1-7 active
+b006 ;         store $iflag
+0000 ;         nop             # insert nops for case that interrupt service is delayed by 1 instruction
+0000 ;         nop
+0000 ;         nop
+0000 ;         nop
+0000 ;         nop
+0000 ;         nop
+0000 ;         nop
+0000 ;         nop
+0000 ;         nop
+0000 ;         nop
+80d4 ;         load  icnt      # check value of icnt -> were 7 interrupt service routines called?
+20b6 ;         sub   const7
+d02c ; marke:  bz    marke     # if yes, end with infinite loop
+20b0 ;         sub   const1    # account for the extra external interrupt 1
+d02c ;         bz    marke     # if yes, end with infinite loop
+c0d5 ; jump    forbid0         # otherwise jump out
+80c4 ; chkptrpsw: load  val1ad     # get address of first value
+b001 ;         store $ptr1      # save in pointer 1
+80c8 ;         load  val2ad     # get address of second value
+b002 ;         store $ptr2      # save in pointer 2
+80cb ;         load  val3ad     # get address of third value
+b003 ;         store $ptr3      # save in pointer 3
+a011 ;         load  ($ptr1)    # load value: 0x5000 @ val1ad
+10b0 ;         add   const1     # add 1
+b011 ;         store ($ptr1)    # store new value: 0x5001
+a004 ;         load  $psw       # load status word
+d03c ;         bz    cont1      # should be zero
+c0d5 ;         jump  forbid0    # -> jump out if not
+a021 ; cont1:  load ($ptr1)inc    # load value with post-increment: 0x5001 @ val1ad
+90cc ;         store tmp1       # store in temporary variable
+a032 ;         load  dec($ptr2)   # load value with pre-decrement: 0x7000 @ val2ad-1
+10cc ;         add   tmp1       # add values -> carry bit should be not set, overflow bit should be set
+a004 ;         load  $psw       # load psw
+b023 ;         store ($ptr3)inc   # save this psw at val3ad
+30cf ;         and   maskC      # check whether carry bit is set
+d045 ;         bz    cont2      # if not, got to error area
+c0d5 ;         jump  forbid0
+b013 ; cont2:  store ($ptr3)    # store masked psw at val3ad+1
+a033 ;         load  dec($ptr3)   # load psw
+30d0 ;         and   maskOV     # check if overflow bit is set
+d0d5 ;         bz    forbid0
+a012 ;         load  ($ptr2)    # load value: 0x7000 @ val2ad-1
+90cc ;         store tmp1
+a021 ;         load  ($ptr1)inc   # load value with post-increment: 0x1000 val1ad+1
+20cc ;         sub   tmp1       # subtract -> negative result, carry bit should be not set, overflow should be not set
+a004 ;         load  $psw       # load psw and...
+b032 ;         store dec($ptr2)   # store @ val2ad-2
+30cf ;         and   maskC      # check if carry bit is set
+d052 ;         bz    cont3
+c0d5 ;         jump  forbid0
+a012 ; cont3:  load  ($ptr2)    # re-load psw and check if negative bit is set
+30ce ;         and   maskN      # check if negative bit is set
+d0d5 ;         bz    forbid0
+a012 ;         load  ($ptr2)    # re-load psw and check if overlow bit is not set
+30d0 ;         and   maskOV
+d059 ;         bz    cont4
+c0d5 ;         jump  forbid0
+a011 ; cont4:  load  ($ptr1)    # load value 0xA000 @ val1ad+2
+20b0 ;         sub   const1     # substract 1 -> carry should be set, overflow shouldn't
+a004 ;         load  $psw       # load and store current psw
+b012 ;         store ($ptr2)
+30cf ;         and   maskC      # check if carry bit is set
+d0d5 ;         bz    forbid0
+a012 ;         load  ($ptr2)    # re-load psw
+30d0 ;         and   maskOV     # check if overflow bit is not set
+d063 ;         bz    cont5
+c0d5 ;         jump   forbid0
+a032 ; cont5:  load  dec($ptr2)   # load value 0x4000 @ val2ad-3
+90cc ;         store tmp1
+a011 ;         load  ($ptr1)    # load value 0xA000 @ val1ad+2
+20cc ;         sub   tmp1       # substract -> carry should be set, overflow should be set
+a004 ;         load  $psw
+90cc ;         store tmp1
+30d0 ;         and   maskOV     # check if overflow is set
+d0d5 ;         bz    forbid0
+80cc ;         load  tmp1
+30cf ;         and   maskC      # check if carry is set
+d0d5 ;         bz    forbid0
+80af ;         load  const0     # load 0 -> zero-flag should be set
+a004 ;         load  $psw
+30cd ;         and   maskZ      # check if it is set
+d0d5 ;         bz    forbid0
+a004 ;         load  $psw       # now Z and N in psw should be reset
+30d1 ;         and   maskZN
+d076 ;         bz    cont6      # check if zero
+c0d5 ;         jump  forbid0
+a100 ; cont6:  ret              # return
+a004 ; int1sr: load  $psw    # load psw and push on stack
+b030 ;         push
+80d4 ;         load  icnt    # add 1 to icnt variable
+10b0 ;         add   const1
+90d4 ;         store icnt
+a020 ;         pop            # pop psw from stack
+b004 ;         store $psw
+a200 ;         reti          # return from interrupt
+a004 ; int2sr: load  $psw    # load psw and push on stack
+b030 ;         push
+80d4 ;         load  icnt    # add 1 to icnt variable
+10b0 ;         add   const1
+90d4 ;         store icnt
+a020 ;         pop           # pop psw from stack
+b004 ;         store $psw
+a200 ;         reti          # return from interrupt
+a004 ; int3sr: load  $psw    # load psw and push on stack
+b030 ;         push
+80d4 ;         load  icnt    # add 1 to icnt variable
+10b0 ;         add   const1
+90d4 ;         store icnt
+a020 ;         pop           # pop psw from stack
+b004 ;         store $psw
+a200 ;         reti          # return from interrupt
+a004 ; int4sr: load  $psw    # load psw and push on stack
+b030 ;         push
+80d4 ;         load  icnt    # add 1 to icnt variable
+10b0 ;         add   const1
+90d4 ;         store icnt
+a020 ;         pop           # pop psw from stack
+b004 ;         store $psw
+a200 ;         reti          # return from interrupt
+a004 ; int5sr: load  $psw    # load psw and push on stack
+b030 ;         push
+80d4 ;         load  icnt    # add 1 to icnt variable
+10b0 ;         add   const1
+90d4 ;         store icnt
+a020 ;         pop           # pop psw from stack
+b004 ;         store $psw
+a200 ;         reti          # return from interrupt
+a004 ; int6sr: load  $psw    # load psw and push on stack
+b030 ;         push
+80d4 ;         load  icnt    # add 1 to icnt variable
+10b0 ;         add   const1
+90d4 ;         store icnt
+a020 ;         pop           # pop psw from stack
+b004 ;         store $psw
+a200 ;         reti          # return from interrupt
+a004 ; int7sr: load  $psw    # load psw and push on stack
+b030 ;         push
+80d4 ;         load  icnt    # add 1 to icnt variable
+10b0 ;         add   const1
+90d4 ;         store icnt
+a020 ;         pop           # pop psw from stack
+b004 ;         store $psw
+a200 ;         reti          # return from interrupt
+0000 ; const0: .word 0x000
+0001 ; const1: .word 0x001
+0002 ; const2: .word 0x002
+0003 ; const3: .word 0x003
+0004 ; const4: .word 0x004
+0005 ; const5: .word 0x005
+0006 ; const6: .word 0x006
+0007 ; const7: .word 0x007
+0008 ; const8: .word 0x008
+0009 ; const9: .word 0x009
+000a ; constA: .word 0x00A
+000b ; constB: .word 0x00B
+000c ; constC: .word 0x00C
+000d ; constD: .word 0x00D
+000e ; constE: .word 0x00E
+000f ; constF: .word 0x00F
+00af ; const0Addr: getaddr const0
+07ff ; spinit: .word 0x7FF
+5000 ; vals1:  .word 0x5000
+1000 ;         .word 0x1000
+a000 ;         .word 0xA000
+00c1 ; val1ad: getaddr vals1
+4000 ; vals2:  .word 0x4000
+0000 ;         .word 0x0000
+7000 ;         .word 0x7000
+00c8 ; val2ad: getaddr val2ad
+0000 ; vals3:  .fill 2,2
+0000 ; val3ad: getaddr val3ad
+00cb ; val3ad: getaddr val3ad
+0000 ; tmp1:   .word 0x0000
+0001 ; maskZ:  .word 0x0001
+0002 ; maskN:  .word 0x0002
+0004 ; maskC:  .word 0x0004
+0008 ; maskOV: .word 0x0008
+0003 ; maskZN: .word 0x0003
+01fe ; ieenmask: .word 0x01FE
+00fe ; iflmask:  .word 0x00FE
+0000 ; icnt:     .word 0x0000
+0000 ; forbid0: nop
+0000 ; forbid1: nop

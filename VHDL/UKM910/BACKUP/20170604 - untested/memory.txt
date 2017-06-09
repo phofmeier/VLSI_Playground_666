@@ -1,0 +1,35 @@
+8012 ;         load  const1   # load constant 1 to ACC -> ACC = 1   [4 cycles]
+101a ;         add   const9   # add 9 -> ACC = 10                   [4 cycles]
+2016 ;         sub   const5   # subtract 5 -> ACC = 5               [4 cycles]
+3017 ;         and   const6   # bitwise AND with 6 -> ACC = 4       [4 cycles]
+4000 ;         not            # negation -> ACC = -5                [4 cycles]
+5000 ;         comp           # complement -> ACC = 5               [4 cycles]
+6000 ;         rotr           # rotate right -> ACC = -32766        [4 cycles]
+e00b ;         bn    mark0    # branch to mark0                     [4 cycles]
+902a ; mark3:  store ADDR     # save result (1) at address 0x02A    [4 cycles]
+2012 ;         sub   const1   # subtract 1 -> ACC = 0               [4 cycles]
+d00a ; mark1:  bz    mark1    # when ACC = 0 (which should be the case here...) stay here forever   [4 cycles]
+7000 ; mark0:  shr            # shift right -> ACC = 16385          [4 cycles]
+0000 ;         nop	      # no operation                            [3 cycles]
+e021 ;         bn    forbid0  # branch to forbid0 (to nowhere...) -> should not be taken            [4 cycles]
+d022 ;         bz    forbid1  # branch to forbid1 (to nowhere...) -> should not be taken            [4 cycles]
+3018 ;         and   const7   # bitwise AND with 7 -> ACC = 1       [4 cycles]
+c008 ;         jump  mark3    # jump to mark3                       [3 cycles]
+0000 ; const0: .word 0x000    # constant 0x0000
+0001 ; const1: .word 0x001    # constant 0x0001
+0002 ; const2: .word 0x002    # constant 0x0002
+0003 ; const3: .word 0x003    # constant 0x0003
+0004 ; const4: .word 0x004    # constant 0x0004
+0005 ; const5: .word 0x005    # constant 0x0005
+0006 ; const6: .word 0x006    # constant 0x0006
+0007 ; const7: .word 0x007    # constant 0x0007
+0008 ; const8: .word 0x008    # constant 0x0008
+0009 ; const9: .word 0x009    # constant 0x0009
+000a ; constA: .word 0x00A    # constant 0x000a
+000b ; constB: .word 0x00B    # constant 0x000b
+000c ; constC: .word 0x00C    # constant 0x000c
+000d ; constD: .word 0x00D    # constant 0x000d
+000e ; constE: .word 0x00E    # constant 0x000e
+000f ; constF: .word 0x00F    # constant 0x000f
+0000 ; forbid0: nop           # jump label forbid0
+0000 ; forbid1: nop    	      # jump label forbid1
