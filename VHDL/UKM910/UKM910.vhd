@@ -18,7 +18,7 @@ use work.all;
 entity UKM910 is
    port ( clk, reset : in std_logic;
           interrupt  : in std_logic_vector (7 downto 0);
-          oe, we   : out std_logic;
+          oe, we     : out std_logic;
           addressbus : out std_logic_vector (11 downto 0);
           databus    : inout std_logic_vector (15 downto 0) );
 end UKM910;

@@ -127,7 +127,8 @@ state_register: process(clk, res) begin
    end if;
 end process;
 
-control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, regICURR) begin
+control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, regICURR)
+begin
    -- Default control outputs (typical value)
    ireset   <= "00000000";
    icurrent <= "00000000";

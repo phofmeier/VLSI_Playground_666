@@ -23,7 +23,6 @@ end UKM910_TB;
 use work.all;
 
 architecture Behavioral of UKM910_TB is
-
    signal oe         :  std_logic;
    signal we         :  std_logic;
    signal reset      :  std_logic;

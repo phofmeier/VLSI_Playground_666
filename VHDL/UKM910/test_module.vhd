@@ -1,9 +1,9 @@
 ----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date:    12:20:33 06/07/2017 
--- Design Name: 
+-- Company:
+-- Engineer:
+--
+-- Create Date:    12:20:33 06/07/2017
+-- Design Name:
 -- Module Name:    test_module - Behavioral
 -----------------------------------------------------------------------------
 library IEEE;
@@ -11,15 +11,15 @@ use IEEE.STD_LOGIC_1164.all;
 
 
 entity test_module is
-    port ( clk, reset   : in  std_logic;
-           we, oe     : in  std_logic;
-           dataIO       : inout  std_logic_vector(15 downto 0));
+   port ( clk, reset : in  std_logic;
+         we, oe      : in  std_logic;
+         dataIO      : inout  std_logic_vector(15 downto 0));
 end test_module;
 
+
 architecture Behavioral of test_module is
-   
    signal value : std_logic_vector(15 downto 0);
-   
+
 begin
 
 handler: process(clk, reset)

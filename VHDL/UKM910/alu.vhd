@@ -6,11 +6,11 @@ use ieee.numeric_std.all;
 
 entity ALU is
    port (
-      A, B                : in  std_logic_vector(15 downto 0);
-      C                   : out std_logic_vector(15 downto 0);
-      ALUFunc             : in  std_logic_vector(3 downto 0);
-      nBit, shiftrot      : in  std_logic;
-      n, z, cout, ov      : out std_logic );
+      A, B           : in  std_logic_vector(15 downto 0);
+      C              : out std_logic_vector(15 downto 0);
+      ALUFunc        : in  std_logic_vector(3 downto 0);
+      nBit, shiftrot : in  std_logic;
+      n, z, cout, ov : out std_logic );
 end ALU;
 
 architecture behaviour of ALU is
@@ -31,6 +31,7 @@ architecture behaviour of ALU is
    constant ALU_INV_B   : std_logic_vector(3 downto 0) := "1011";
 
 begin
+
 func: process(ALUFunc, nBit, shiftrot, A, B)
 begin
    case ALUFunc is
