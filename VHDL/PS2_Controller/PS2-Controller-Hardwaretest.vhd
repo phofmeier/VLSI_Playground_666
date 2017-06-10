@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------
--- Engineer: Fabian Müller
+-- Engineer: Fabian MÃ¼ller
 -- 
 -- Create Date:    09:43:25 05/26/2017 
 -- Module Name:    PS2-Controller - Behavioral 
@@ -250,7 +250,7 @@ begin
 					end if;
 				when CHECK_BYTE =>
 				--if the scan code is not in the upper list, data_convert_sig will set on 
-				--1111111 an the scan code will be ignor by jumping back to start
+				--1111111 and the scan code will be ignor by jumping back to start
 					if data_convert_sig = "11111111" then
 						state <= START;
 					else
