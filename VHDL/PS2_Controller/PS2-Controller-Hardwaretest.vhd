@@ -1,0 +1,312 @@
+----------------------------------------------------------------------------------
+-- Engineer: Fabian Müller
+-- 
+-- Create Date:    09:43:25 05/26/2017 
+-- Module Name:    PS2-Controller - Behavioral 
+
+--For Hardwaretest for milestone 2. 
+----------------------------------------------------------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+
+entity PS2_Controller is
+    Port ( OE : in  STD_LOGIC;
+           databus : out  STD_LOGIC_VECTOR (7 downto 0);
+           interrupt : out  STD_LOGIC;
+           clk : in  STD_LOGIC;
+           reset : in  STD_LOGIC;
+           PS2clk : in  STD_LOGIC;
+           PS2data : in  STD_LOGIC);
+end PS2_Controller;
+
+architecture Behavioral of PS2_Controller is
+
+--definition of the states for the state machine
+type STATES is (RST, START, 
+					START_BIT, WAIT_START_BIT, 
+					BIT_0, WAIT_BIT_0, 
+					BIT_1, WAIT_BIT_1,
+					BIT_2, WAIT_BIT_2,
+					BIT_3, WAIT_BIT_3,
+					BIT_4, WAIT_BIT_4,
+					BIT_5, WAIT_BIT_5,
+					BIT_6, WAIT_BIT_6,
+					BIT_7, WAIT_BIT_7,
+					BIT_P, WAIT_BIT_P,
+					STOP_BIT, CHECK_PARITY,
+					CHECK_BYTE,
+					DATA_ON_BUS,
+					DATA_OFF_BUS);
+signal state : STATES := RST;
+signal data_sig : std_logic_vector(7 downto 0); --input register from Keyboard
+signal data_convert_sig : std_logic_vector(7 downto 0); --converted data_sig
+signal parity_sig : std_logic;
+signal check_parity_sig : std_logic;
+signal temp_sig : std_logic;
+
+--Input codes from PS2-Keyboard (not numpad)
+constant key_1 : std_logic_vector(7 downto 0) := "00010110";
+constant key_2 : std_logic_vector(7 downto 0) := "00011110";
+constant key_3 : std_logic_vector(7 downto 0) := "00100110";
+constant key_4 : std_logic_vector(7 downto 0) := "00100101";
+constant key_5 : std_logic_vector(7 downto 0) := "00101110";
+constant key_6 : std_logic_vector(7 downto 0) := "00110110";
+constant key_7 : std_logic_vector(7 downto 0) := "00111101";
+constant key_8 : std_logic_vector(7 downto 0) := "00111110";
+constant key_9 : std_logic_vector(7 downto 0) := "01000110";
+constant key_0 : std_logic_vector(7 downto 0) := "01000101";
+constant key_add : std_logic_vector(7 downto 0) := "01111001";
+constant key_sub : std_logic_vector(7 downto 0) := "01111011";
+constant key_mul : std_logic_vector(7 downto 0) := "01111100";
+constant key_div : std_logic_vector(7 downto 0) := "01001010";
+
+--Converted codes to the Processor (in binary for easier test)
+constant conv_1 : std_logic_vector(7 downto 0) := "00000001";
+constant conv_2 : std_logic_vector(7 downto 0) := "00000010";
+constant conv_3 : std_logic_vector(7 downto 0) := "00000011";
+constant conv_4 : std_logic_vector(7 downto 0) := "00000100";
+constant conv_5 : std_logic_vector(7 downto 0) := "00000101";
+constant conv_6 : std_logic_vector(7 downto 0) := "00000110";
+constant conv_7 : std_logic_vector(7 downto 0) := "00000111";
+constant conv_8 : std_logic_vector(7 downto 0) := "00001000";
+constant conv_9 : std_logic_vector(7 downto 0) := "00001001";
+constant conv_0 : std_logic_vector(7 downto 0) := "00000000";
+constant conv_add : std_logic_vector(7 downto 0) := "10000001";
+constant conv_sub : std_logic_vector(7 downto 0) := "10000010";
+constant conv_mul : std_logic_vector(7 downto 0) := "10000011";
+constant conv_div : std_logic_vector(7 downto 0) := "10000100";
+
+
+begin
+	process (clk, reset)
+	begin
+		if reset = '1' then
+			state <= START;
+			databus <= "ZZZZZZZZ";
+			parity_sig <= '0';
+			check_parity_sig <= '0';
+			data_sig <= "00000000";
+		elsif rising_edge (clk) then
+			case state is
+				when START =>
+					if PS2clk = '0' then
+						data_sig <= "00000000";
+						check_parity_sig <= '0';
+						state <= START_BIT;
+					else
+						state <= START;
+					end if;
+				when START_BIT =>
+					if PS2clk = '1' then
+						state <= WAIT_START_BIT;
+					else
+						state <= START_BIT;
+					end if;
+				when WAIT_START_BIT =>
+					if PS2clk = '0' then
+						state <= BIT_0;
+						data_sig(0) <= PS2data;
+					else
+						state <= WAIT_START_BIT;
+					end if;
+				when BIT_0 =>
+					if PS2clk = '1' then
+						check_parity_sig <= check_parity_sig xor data_sig(0);
+						state <= WAIT_BIT_0;
+					else
+						state <= BIT_0;
+					end if;
+				when WAIT_BIT_0 =>
+					if PS2clk = '0' then
+						state <= BIT_1;
+						data_sig(1) <= PS2data;
+					else
+						state <= WAIT_BIT_0;
+					end if;
+				when BIT_1 =>
+					if PS2clk = '1' then
+						check_parity_sig <= check_parity_sig xor data_sig(1);
+						state <= WAIT_BIT_1;
+					else
+						state <= BIT_1;
+					end if;
+				when WAIT_BIT_1 =>
+					if PS2clk = '0' then
+						state <= BIT_2;
+						data_sig(2) <= PS2data;
+					else
+						state <= WAIT_BIT_1;
+					end if;
+				when BIT_2 =>
+					if PS2clk = '1' then
+						check_parity_sig <= check_parity_sig xor data_sig(2);
+						state <= WAIT_BIT_2;
+					else
+						state <= BIT_2;
+					end if;
+				when WAIT_BIT_2 =>
+					if PS2clk = '0' then
+						state <= BIT_3;
+						data_sig(3) <= PS2data;
+					else
+						state <= WAIT_BIT_2;
+					end if;
+				when BIT_3 =>
+					if PS2clk = '1' then
+						check_parity_sig <= check_parity_sig xor data_sig(3);
+						state <= WAIT_BIT_3;
+					else
+						state <= BIT_3;
+					end if;
+				when WAIT_BIT_3 =>
+					if PS2clk = '0' then
+						state <= BIT_4;
+						data_sig(4) <= PS2data;
+					else
+						state <= WAIT_BIT_3;
+					end if;
+				when BIT_4 =>
+					if PS2clk = '1' then
+						check_parity_sig <= check_parity_sig xor data_sig(4);
+						state <= WAIT_BIT_4;
+					else
+						state <= BIT_4;
+					end if;
+				when WAIT_BIT_4 =>
+					if PS2clk = '0' then
+						state <= BIT_5;
+						data_sig(5) <= PS2data;
+					else
+						state <= WAIT_BIT_4;
+					end if;
+				when BIT_5 =>
+					if PS2clk = '1' then
+						check_parity_sig <= check_parity_sig xor data_sig(5);
+						state <= WAIT_BIT_5;
+					else
+						state <= BIT_5;
+					end if;
+				when WAIT_BIT_5 =>
+					if PS2clk = '0' then
+						state <= BIT_6;
+						data_sig(6) <= PS2data;
+					else
+						state <= WAIT_BIT_5;
+					end if;
+				when BIT_6 =>
+					if PS2clk = '1' then
+						check_parity_sig <= check_parity_sig xor data_sig(6);
+						state <= WAIT_BIT_6;
+					else
+						state <= BIT_6;
+					end if;
+				when WAIT_BIT_6 =>
+					if PS2clk = '0' then
+						state <= BIT_7;
+						data_sig(7) <= PS2data;
+					else
+						state <= WAIT_BIT_6;
+					end if;
+				when BIT_7 =>
+					if PS2clk = '1' then
+						check_parity_sig <= check_parity_sig xor data_sig(7);
+						state <= WAIT_BIT_7;
+					else
+						state <= BIT_7;
+					end if;
+				when WAIT_BIT_7 =>
+					if PS2clk = '0' then
+						parity_sig <= PS2data;
+						check_parity_sig <= not check_parity_sig;
+						state <= BIT_P;
+					else
+						state <= WAIT_BIT_7;
+					end if;
+				when BIT_P =>
+					if PS2clk = '1' then
+						state <= WAIT_BIT_P;
+					else
+						state <= BIT_P;
+					end if;
+				when WAIT_BIT_P =>
+					if PS2clk = '0' then
+						state <= STOP_BIT;
+					else
+						state <= WAIT_BIT_P;
+					end if;
+				when STOP_BIT =>
+					if PS2clk = '1' then
+						state <= CHECK_PARITY;
+					else
+						state <= STOP_BIT;
+					end if;
+				when CHECK_PARITY =>
+				--if parity bit is wrong, go to the start and ignor the scan code
+					if parity_sig = check_parity_sig then
+						state <= CHECK_BYTE;
+					else 
+						state <= START;
+					end if;
+				when CHECK_BYTE =>
+				--if the scan code is not in the upper list, data_convert_sig will set on 
+				--1111111 an the scan code will be ignor by jumping back to start
+					if data_convert_sig = "11111111" then
+						state <= START;
+					else
+						databus <= data_convert_sig;
+						state <= DATA_ON_BUS;
+					end if;
+				when DATA_ON_BUS =>
+					interrupt <= '1';
+					state <= DATA_OFF_BUS;
+				when DATA_OFF_BUS =>
+					interrupt <= '0';
+					databus <= "ZZZZZZZZ";
+					state <= START;
+				when others =>
+					state <= START;
+				end case;
+		end if;
+	end process;
+	
+	process (clk, reset, OE, PS2clk, PS2data, data_sig)
+	begin
+		case data_sig is
+			when key_1 => 
+				data_convert_sig <= conv_1;
+			when key_2 => 
+				data_convert_sig <= conv_2;				
+			when key_3 => 
+				data_convert_sig <= conv_3;
+			when key_4 => 
+				data_convert_sig <= conv_4;
+			when key_5 => 
+				data_convert_sig <= conv_5;
+			when key_6 => 
+				data_convert_sig <= conv_6;
+			when key_7 => 
+				data_convert_sig <= conv_7;
+			when key_8 => 
+				data_convert_sig <= conv_8;
+			when key_9 => 
+				data_convert_sig <= conv_9;
+			when key_0 => 
+				data_convert_sig <= conv_0;
+			when key_add => 
+				data_convert_sig <= conv_add;
+			when key_sub => 
+				data_convert_sig <= conv_sub;
+			when key_mul => 
+				data_convert_sig <= conv_mul;
+			when key_div => 
+				data_convert_sig <= conv_div;
+			when others =>
+				data_convert_sig <= "11111111";
+		end case;
+	end process;
+		
+							
+
+
+end Behavioral;
