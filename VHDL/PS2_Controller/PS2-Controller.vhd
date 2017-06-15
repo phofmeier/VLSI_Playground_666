@@ -19,6 +19,8 @@
 ----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_MISC.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -43,26 +45,31 @@ architecture Behavioral of PS2_Controller is
 
 --definition of the states for the state machine
 type STATES is (RST, START, 
-					START_BIT, WAIT_START_BIT, 
-					BIT_0, WAIT_BIT_0, 
-					BIT_1, WAIT_BIT_1,
-					BIT_2, WAIT_BIT_2,
-					BIT_3, WAIT_BIT_3,
-					BIT_4, WAIT_BIT_4,
-					BIT_5, WAIT_BIT_5,
-					BIT_6, WAIT_BIT_6,
-					BIT_7, WAIT_BIT_7,
+					START_BIT, WAIT_START_BIT,
+					BIT_IN, WAIT_STATE,
+--					BIT_0, WAIT_BIT_0, 
+--					BIT_1, WAIT_BIT_1,
+--					BIT_2, WAIT_BIT_2,
+--					BIT_3, WAIT_BIT_3,
+--					BIT_4, WAIT_BIT_4,
+--					BIT_5, WAIT_BIT_5,
+--					BIT_6, WAIT_BIT_6,
+--					BIT_7, WAIT_BIT_7,
 					BIT_P, WAIT_BIT_P,
 					STOP_BIT, CHECK_PARITY,
 					CHECK_BYTE,
 					DATA_ON_BUS,
 					DATA_OFF_BUS);
-signal state : STATES := RST;
+signal state : STATES;
 signal data_sig : std_logic_vector(7 downto 0); --input register from Keyboard
 signal data_convert_sig : std_logic_vector(7 downto 0); --converted data_sig
 signal parity_sig : std_logic;
 signal check_parity_sig : std_logic;
 signal temp_sig : std_logic;
+signal idx_sig, idx_next_sig : integer range 0 to 7 := 0;
+signal counter_sig : integer range 0 to 16 := 0;
+signal shift_reg_sig : STD_LOGIC_VECTOR(7 downto 0) := X"00";
+signal clock_div_sig : std_logic := '0';
 
 --Input codes from PS2-Keyboard
 constant key_1 : std_logic_vector(7 downto 0) := "00010110";
@@ -109,113 +116,142 @@ begin
 		elsif rising_edge (clk) then
 			case state is
 				when START =>
-					if PS2clk = '0' then
+					if shift_reg_sig(6) = '0' and shift_reg_sig(1) = '1' then
 					data_sig <= "00000000";
 						check_parity_sig <= '0';
 						state <= START_BIT;
 					end if;
 				when START_BIT =>
-					if PS2clk = '1' then
-						state <= WAIT_START_BIT;
+					if shift_reg_sig(6) = '1' and shift_reg_sig(1) = '0' then
+						state <= BIT_IN;
 					end if;
-				when WAIT_START_BIT =>
-					if PS2clk = '0' then
-						state <= BIT_0;
-						data_sig(0) <= PS2data;
+				
+				-- 8 Bit Data Input
+				when BIT_IN =>
+					if shift_reg_sig(6) = '0' and shift_reg_sig(1) = '1' then
+						state <= WAIT_STATE;
+						data_sig(idx_sig) <= PS2data;
+						idx_next_sig <= idx_sig + 1;
+					else
+						state <= BIT_IN;
 					end if;
-				when BIT_0 =>
-					if PS2clk = '1' then
-						check_parity_sig <= check_parity_sig xor data_sig(0);
-						state <= WAIT_BIT_0;
+				
+				when WAIT_STATE =>
+					if shift_reg_sig(6) = '1' and shift_reg_sig(1) = '0' then
+						check_parity_sig <= check_parity_sig xor data_sig(idx_sig);
+						if idx_sig = 7 then
+							state <= WAIT_BIT_P;
+							idx_sig <= 0;
+							idx_next_sig <= 0;
+						else
+							state <= BIT_IN;
+							idx_sig <= idx_next_sig;
+						end if;
+					else 
+						state <= WAIT_STATE;
 					end if;
-				when WAIT_BIT_0 =>
-					if PS2clk = '0' then
-						state <= BIT_1;
-						data_sig(1) <= PS2data;
-					end if;
-				when BIT_1 =>
-					if PS2clk = '1' then
-						check_parity_sig <= check_parity_sig xor data_sig(1);
-						state <= WAIT_BIT_1;
-					end if;
-				when WAIT_BIT_1 =>
-					if PS2clk = '0' then
-						state <= BIT_2;
-						data_sig(2) <= PS2data;
-					end if;
-				when BIT_2 =>
-					if PS2clk = '1' then
-						check_parity_sig <= check_parity_sig xor data_sig(2);
-						state <= WAIT_BIT_2;
-					end if;
-				when WAIT_BIT_2 =>
-					if PS2clk = '0' then
-						state <= BIT_3;
-						data_sig(3) <= PS2data;
-					end if;
-				when BIT_3 =>
-					if PS2clk = '1' then
-						check_parity_sig <= check_parity_sig xor data_sig(3);
-						state <= WAIT_BIT_3;
-					end if;
-				when WAIT_BIT_3 =>
-					if PS2clk = '0' then
-						state <= BIT_4;
-						data_sig(4) <= PS2data;
-					end if;
-				when BIT_4 =>
-					if PS2clk = '1' then
-						check_parity_sig <= check_parity_sig xor data_sig(4);
-						state <= WAIT_BIT_4;
-					end if;
-				when WAIT_BIT_4 =>
-					if PS2clk = '0' then
-						state <= BIT_5;
-						data_sig(5) <= PS2data;
-					end if;
-				when BIT_5 =>
-					if PS2clk = '1' then
-						check_parity_sig <= check_parity_sig xor data_sig(5);
-						state <= WAIT_BIT_5;
-					end if;
-				when WAIT_BIT_5 =>
-					if PS2clk = '0' then
-						state <= BIT_6;
-						data_sig(6) <= PS2data;
-					end if;
-				when BIT_6 =>
-					if PS2clk = '1' then
-						check_parity_sig <= check_parity_sig xor data_sig(6);
-						state <= WAIT_BIT_6;
-					end if;
-				when WAIT_BIT_6 =>
-					if PS2clk = '0' then
-						state <= BIT_7;
-						data_sig(7) <= PS2data;
-					end if;
-				when BIT_7 =>
-					if PS2clk = '1' then
-						check_parity_sig <= check_parity_sig xor data_sig(7);
-						state <= WAIT_BIT_7;
-					end if;
-				when WAIT_BIT_7 =>
-					if PS2clk = '0' then
+					
+					
+--				when BIT_0 =>
+--					if PS2clk = '1' then
+--						check_parity_sig <= check_parity_sig xor data_sig(0);
+--						state <= WAIT_BIT_0;
+--					end if;
+--				when WAIT_BIT_0 =>
+--					if PS2clk = '0' then
+--						state <= BIT_1;
+--						data_sig(1) <= PS2data;
+--					end if;
+--				when BIT_1 =>
+--					if PS2clk = '1' then
+--						check_parity_sig <= check_parity_sig xor data_sig(1);
+--						state <= WAIT_BIT_1;
+--					end if;
+--				when WAIT_BIT_1 =>
+--					if PS2clk = '0' then
+--						state <= BIT_2;
+--						data_sig(2) <= PS2data;
+--					end if;
+--				when BIT_2 =>
+--					if PS2clk = '1' then
+--						check_parity_sig <= check_parity_sig xor data_sig(2);
+--						state <= WAIT_BIT_2;
+--					end if;
+--				when WAIT_BIT_2 =>
+--					if PS2clk = '0' then
+--						state <= BIT_3;
+--						data_sig(3) <= PS2data;
+--					end if;
+--				when BIT_3 =>
+--					if PS2clk = '1' then
+--						check_parity_sig <= check_parity_sig xor data_sig(3);
+--						state <= WAIT_BIT_3;
+--					end if;
+--				when WAIT_BIT_3 =>
+--					if PS2clk = '0' then
+--						state <= BIT_4;
+--						data_sig(4) <= PS2data;
+--					end if;
+--				when BIT_4 =>
+--					if PS2clk = '1' then
+--						check_parity_sig <= check_parity_sig xor data_sig(4);
+--						state <= WAIT_BIT_4;
+--					end if;
+--				when WAIT_BIT_4 =>
+--					if PS2clk = '0' then
+--						state <= BIT_5;
+--						data_sig(5) <= PS2data;
+--					end if;
+--				when BIT_5 =>
+--					if PS2clk = '1' then
+--						check_parity_sig <= check_parity_sig xor data_sig(5);
+--						state <= WAIT_BIT_5;
+--					end if;
+--				when WAIT_BIT_5 =>
+--					if PS2clk = '0' then
+--						state <= BIT_6;
+--						data_sig(6) <= PS2data;
+--					end if;
+--				when BIT_6 =>
+--					if PS2clk = '1' then
+--						check_parity_sig <= check_parity_sig xor data_sig(6);
+--						state <= WAIT_BIT_6;
+--					end if;
+--				when WAIT_BIT_6 =>
+--					if PS2clk = '0' then
+--						state <= BIT_7;
+--						data_sig(7) <= PS2data;
+--					end if;
+--				when BIT_7 =>
+--					if PS2clk = '1' then
+--						check_parity_sig <= check_parity_sig xor data_sig(7);
+--						state <= WAIT_BIT_7;
+--					end if;
+--				when WAIT_BIT_7 =>
+--					if PS2clk = '0' then
+--						parity_sig <= PS2data;
+--						check_parity_sig <= not check_parity_sig;
+--						state <= BIT_P;
+--					end if;
+--				when BIT_P =>
+--					if PS2clk = '1' then
+--						state <= WAIT_BIT_P;
+--					end if;
+
+				-- Parity Bit
+				when WAIT_BIT_P =>
+					if shift_reg_sig(6) = '0' and shift_reg_sig(1) = '1' then
 						parity_sig <= PS2data;
 						check_parity_sig <= not check_parity_sig;
-						state <= BIT_P;
-					end if;
-				when BIT_P =>
-					if PS2clk = '1' then
-						state <= WAIT_BIT_P;
-					end if;
-				when WAIT_BIT_P =>
-					if PS2clk = '0' then
 						state <= STOP_BIT;
 					end if;
 				when STOP_BIT =>
-					if PS2clk = '1' then
+					if shift_reg_sig(6) = '1' and shift_reg_sig(1) = '0' then
 						state <= CHECK_PARITY;
 					end if;
+				--End of the Inputdatas
+				
+				--Check the Parity-Bit an the Data converter
 				when CHECK_PARITY =>
 					if parity_sig = check_parity_sig then
 						state <= CHECK_BYTE;
@@ -236,6 +272,7 @@ begin
 						state <= DATA_OFF_BUS;
 					--end if;
 				when DATA_OFF_BUS =>
+		--for Hardwaretest delete the "if"!!!!!!!!!!!!!!!!!!!!
 					if OE = '0' then
 						databus <= "ZZZZZZZZ";
 						state <= START;
@@ -281,7 +318,30 @@ begin
 				data_convert_sig <= "11111111";
 		end case;
 	end process;
-		
+	
+	process (clk)
+	begin
+		if rising_edge(clk) then
+			if counter_sig = 16 then
+				clock_div_sig <= NOT clock_div_sig;
+				counter_sig <= 0;
+			else
+				counter_sig <= counter_sig + 1;
+			end if;
+		end if;
+	end process;
+	
+	process (clock_div_sig)
+	begin
+           shift_reg_sig(7) <= PS2clk;
+           shift_reg_sig(6) <= shift_reg_sig(7);
+           shift_reg_sig(5) <= shift_reg_sig(6);
+           shift_reg_sig(4) <= shift_reg_sig(5);
+           shift_reg_sig(3) <= shift_reg_sig(4);
+           shift_reg_sig(2) <= shift_reg_sig(3);
+           shift_reg_sig(1) <= shift_reg_sig(2);
+           shift_reg_sig(0) <= shift_reg_sig(1);
+	end process;
 							
 
 
