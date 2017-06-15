@@ -398,7 +398,7 @@ architecture clock of clk_gen is
 	begin
 
 	reset_driver : 
-		reset <= '0', '1' after 30 ns ;
+		reset <= '1', '0' after 30 ns ;
 
 	clock_driver : process     
    variable tmp_clk : std_logic := '1';

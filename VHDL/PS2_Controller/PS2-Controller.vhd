@@ -38,7 +38,8 @@ entity PS2_Controller is
            clk : in  STD_LOGIC;
            reset : in  STD_LOGIC;
            PS2clk : in  STD_LOGIC;
-           PS2data : in  STD_LOGIC);
+           PS2data : in  STD_LOGIC;
+			  LED :  out std_logic_vector (7 downto 0)); --LED for debugging
 end PS2_Controller;
 
 architecture Behavioral of PS2_Controller is
@@ -56,7 +57,8 @@ type STATES is (RST, START,
 --					BIT_6, WAIT_BIT_6,
 --					BIT_7, WAIT_BIT_7,
 					BIT_P, WAIT_BIT_P,
-					STOP_BIT, CHECK_PARITY,
+					STOP_BIT, WAIT_STOP_BIT,
+					LAST_HIGH, CHECK_PARITY,
 					CHECK_BYTE,
 					DATA_ON_BUS,
 					DATA_OFF_BUS);
@@ -70,6 +72,7 @@ signal idx_sig, idx_next_sig : integer range 0 to 7 := 0;
 signal counter_sig : integer range 0 to 16 := 0;
 signal shift_reg_sig : STD_LOGIC_VECTOR(7 downto 0) := X"00";
 signal clock_div_sig : std_logic := '0';
+signal led_sig : std_logic_vector(7 downto 0);
 
 --Input codes from PS2-Keyboard
 constant key_1 : std_logic_vector(7 downto 0) := "00010110";
@@ -107,7 +110,7 @@ constant conv_div : std_logic_vector(7 downto 0) := "10000100";
 begin
 	process (clk, reset)
 	begin
-		if reset = '0' then
+		if reset = '1' then
 			state <= START;
 			databus <= "ZZZZZZZZ";
 			parity_sig <= '0';
@@ -116,14 +119,20 @@ begin
 		elsif rising_edge (clk) then
 			case state is
 				when START =>
+					LED <= X"00";
+					led_sig <= X"00";
 					if shift_reg_sig(6) = '0' and shift_reg_sig(1) = '1' then
 					data_sig <= "00000000";
 						check_parity_sig <= '0';
 						state <= START_BIT;
 					end if;
 				when START_BIT =>
+					LED <= X"01";
+					led_sig <= X"01";
 					if shift_reg_sig(6) = '1' and shift_reg_sig(1) = '0' then
 						state <= BIT_IN;
+						LED <= X"02";
+						led_sig <= X"02";
 					end if;
 				
 				-- 8 Bit Data Input
@@ -132,6 +141,8 @@ begin
 						state <= WAIT_STATE;
 						data_sig(idx_sig) <= PS2data;
 						idx_next_sig <= idx_sig + 1;
+						led_sig <= std_logic_vector(unsigned(led_sig) + 1);
+						LED <= led_sig;
 					else
 						state <= BIT_IN;
 					end if;
@@ -143,9 +154,13 @@ begin
 							state <= WAIT_BIT_P;
 							idx_sig <= 0;
 							idx_next_sig <= 0;
+							led_sig <= std_logic_vector(unsigned(led_sig) + 1);
+							LED <= led_sig;
 						else
 							state <= BIT_IN;
 							idx_sig <= idx_next_sig;
+							led_sig <= std_logic_vector(unsigned(led_sig) + 1);
+							LED <= led_sig;
 						end if;
 					else 
 						state <= WAIT_STATE;
@@ -240,44 +255,66 @@ begin
 
 				-- Parity Bit
 				when WAIT_BIT_P =>
+					LED <= X"11";
 					if shift_reg_sig(6) = '0' and shift_reg_sig(1) = '1' then
 						parity_sig <= PS2data;
 						check_parity_sig <= not check_parity_sig;
 						state <= STOP_BIT;
 					end if;
 				when STOP_BIT =>
+					LED <= X"12";
+					if shift_reg_sig(6) = '1' and shift_reg_sig(1) = '0' then
+						state <= WAIT_STOP_BIT;
+					end if;
+				when WAIT_STOP_BIT =>
+					LED <= X"13";
+					if shift_reg_sig(6) = '0' and shift_reg_sig(1) = '1' then
+						state <= LAST_HIGH;
+					end if;
+				when LAST_HIGH =>
+					LED <= X"14";
 					if shift_reg_sig(6) = '1' and shift_reg_sig(1) = '0' then
 						state <= CHECK_PARITY;
 					end if;
+					
 				--End of the Inputdatas
 				
 				--Check the Parity-Bit an the Data converter
 				when CHECK_PARITY =>
+					LED <= X"15";
 					if parity_sig = check_parity_sig then
 						state <= CHECK_BYTE;
 					else 
 						state <= START;
 					end if;
 				when CHECK_BYTE =>
+					LED <= X"16";
 					if data_convert_sig = "11111111" then
 						state <= START;
 					else
-						interrupt <= '1';
+					--for processor design: interrupt bevor databus!
+						databus <= data_convert_sig;
 						state <= DATA_ON_BUS;
 					end if;
 				when DATA_ON_BUS =>
+					LED <= X"17";
 					--if OE = '1' then
-						databus <= data_convert_sig;
-						interrupt <= '0';
+						interrupt <= '1';
+					--select, which data on the bus,
+						--databus <= data_convert_sig;
+						databus <= data_sig;
 						state <= DATA_OFF_BUS;
 					--end if;
 				when DATA_OFF_BUS =>
+					LED <= X"18";
 		--for Hardwaretest delete the "if"!!!!!!!!!!!!!!!!!!!!
 					if OE = '0' then
 						databus <= "ZZZZZZZZ";
+						interrupt <= '0';
 						state <= START;
 					end if;
 				when others =>
+					LED <= X"FF";
 					state <= START;
 				end case;
 		end if;

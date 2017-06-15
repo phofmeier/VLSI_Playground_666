@@ -19,7 +19,8 @@ entity PS2TestEnvironment is
     lcdRS   : out std_logic;
     lcdRW   : out std_logic;
     lcdE    : out std_logic;
-    sf_ce0  : out std_logic );
+    sf_ce0  : out std_logic;
+	 LED 	: out std_logic_vector (7 downto 0));
 
 end PS2TestEnvironment;
 
@@ -37,7 +38,8 @@ architecture structural  of PS2TestEnvironment is
       PS2clk        : in  std_logic;
       PS2data       : in  std_logic;
       interrupt 	  : out std_logic;
-      databus       : out std_logic_vector(7 downto 0));
+      databus       : out std_logic_vector(7 downto 0);
+		LED			   : out std_logic_vector (7 downto 0));
   end component;
 
   -----------------------------------------------------------------------------
@@ -75,7 +77,8 @@ begin  -- structural
       PS2clk        => ps2clk,
       PS2data       => ps2data,
       interrupt 	  => dataAvailable,
-      databus       => data);
+      databus       => data,
+		LED			  => LED);
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
