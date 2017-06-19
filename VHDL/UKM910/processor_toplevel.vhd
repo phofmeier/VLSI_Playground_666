@@ -1,20 +1,9 @@
 ----------------------------------------------------------------------------------
--- Company:
--- Engineer:
+-- Engineer:       Nicholas Feix
 --
--- Create Date:    20:13:54 06/04/2017
+-- Create Date:    13:34:00 06/9/2017
 -- Design Name:
 -- Module Name:    processor_toplevel - Behavioral
--- Project Name:
--- Target Devices:
--- Tool versions:
--- Description:
---
--- Dependencies:
---
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
 --
 ----------------------------------------------------------------------------------
 LIBRARY ieee;
@@ -23,19 +12,21 @@ USE ieee.numeric_std.ALL;
 
 
 entity processor_toplevel is
-   port( reset    : in  std_logic;
-         clk      : in  std_logic;
+   port( reset       : in std_logic;
+         clk         : in std_logic;
+         -- interrupt input from switch 1
+         interrupt1  : in std_logic;
          -- inputs from the rotary knob
-         rot_a    : in  std_logic;
-         rot_b    : in  std_logic;
-         rot_btn  : in  std_logic;
+         rot_a       : in std_logic;
+         rot_b       : in std_logic;
+         rot_btn     : in std_logic;
          -- outputs to LEDs
-         leds     : out std_logic_vector(7 downto 0) );
+         leds        : out std_logic_vector( 7 downto 0) );
 end processor_toplevel;
 
 use work.all;
 
-architecture behavioral of processor_toplevel is
+architecture Behavioral of processor_toplevel is
 
    signal oe         : std_logic;
    signal we         : std_logic;
@@ -104,7 +95,7 @@ begin
    we_test  <= sel_test and we;
    oe_test  <= sel_test and oe;
 
-   -- interrupts currently not used
-   interrupt <= (others => '0');
+   -- interrupts but int1 currently not used
+   interrupt <= "000000" & interrupt1 & '0';
 
 end;

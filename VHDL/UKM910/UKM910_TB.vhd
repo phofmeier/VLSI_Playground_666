@@ -1,17 +1,11 @@
--- Vhdl test bench created from schematic C:\Daten\ISE\IntegrierteSchaltungenProjekt\UKM801.sch - Wed Jan 09 22:17:10 2008
+----------------------------------------------------------------------------------
+-- Engineer:       Nicholas Feix
 --
--- Notes:
--- 1) This testbench template has been automatically generated using types
--- std_logic and std_logic_vector for the ports of the unit under test.
--- Xilinx recommends that these types always be used for the top-level
--- I/O of a design in order to guarantee that the testbench will bind
--- correctly to the timing (post-route) simulation model.
--- 2) To use this template as your testbench, change the filename to any
--- name of your choice with the extension .vhd, and use the "Source->Add"
--- menu in Project Navigator to import the testbench. Then
--- edit the user defined section below, adding code to generate the
--- stimulus for your design.
+-- Create Date:    12:50:01 05/17/2017
+-- Design Name:
+-- Module Name:    UKM910_TB - Behavioral
 --
+----------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

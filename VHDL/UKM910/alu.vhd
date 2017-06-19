@@ -1,4 +1,11 @@
-
+----------------------------------------------------------------------------------
+-- Engineer:       Nicholas Feix
+--
+-- Create Date:    12:50:01 05/17/2017
+-- Design Name:
+-- Module Name:    ALU - Behavioral
+--
+----------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_misc.all;
@@ -13,7 +20,7 @@ entity ALU is
       n, z, cout, ov : out std_logic );
 end ALU;
 
-architecture behaviour of ALU is
+architecture Behavioral of ALU is
    signal calc : unsigned(16 downto 0);
    signal result : std_logic_vector(15 downto 0);
 

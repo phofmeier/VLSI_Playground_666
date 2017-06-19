@@ -25,6 +25,7 @@ end UKM910;
 
 architecture Behavioral of UKM910 is
 
+   signal data_in       : std_logic_vector(15 downto 0);
    signal result        : std_logic_vector(15 downto 0);
    signal A_bus, B_bus  : std_logic_vector(15 downto 0);
    signal ALUfunc       : std_logic_vector(3 downto 0);
@@ -184,10 +185,10 @@ begin
       end case;
    end process;
 
-   B_bus_mux: process(selB, databus, regPC, regIR, regSP, regPTR1, regPTR2, regPTR3) begin
+   B_bus_mux: process(selB, data_in, regPC, regIR, regSP, regPTR1, regPTR2, regPTR3) begin
       case ( selB ) is
          when SEL_B_DATA =>
-            B_bus <= databus;
+            B_bus <= data_in;
          when SEL_B_PC =>
             B_bus <= x"0" & regPC;
          when SEL_B_IR =>
@@ -252,7 +253,8 @@ begin
       end if;
    end process;
 
-   databus <= result when (enRes = '1') else (others => 'Z');
+   data_in <= databus when (enRes = '0') else (others => 'Z');
+   databus <= result  when (enRes = '1') else (others => 'Z');
    iinternal <= ibuff or regIFLAG;
 
 end Behavioral;
