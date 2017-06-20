@@ -30,8 +30,8 @@ begin
       vsync       => vsync,
       pixel_clk   => pixel_clk,
       pixel_en    => pixel_en,
-      pixel_top   => pixel_top,
-      pixel_left  => pixel_left
+      pixel_top   => pixel_top,  -- comes one cycle before pixel_en
+      pixel_left  => pixel_left  -- comes one cycle before pixel_en
    );
 
    uu2: entity vgaTesterDigInterface
@@ -46,7 +46,7 @@ begin
 image_generator: process(x, y, pixel_en, pixel_left)
 begin
    if ( pixel_en = '1' ) then
-      if ( pixel_left = '1' or x = 0 or x = (640-1) ) then
+      if ( x = 0 or x = (640-1) ) then
         red   <= '0';
         green <= '0';
         blue  <= '1';
@@ -73,7 +73,6 @@ begin
    else
       x_n <= x;
    end if;
-
    if pixel_left = '1' then
       y_n <= y + 1;
    else
