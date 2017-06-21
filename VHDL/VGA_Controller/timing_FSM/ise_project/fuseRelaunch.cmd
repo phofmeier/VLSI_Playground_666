@@ -1,1 +1,1 @@
--intstyle "ise" -incremental -o "C:/NICKI/Studium/Semester 8/VLSI/Project_Group3/VGA-Controller/ise_project/testbench_isim_beh.exe" -prj "C:/NICKI/Studium/Semester 8/VLSI/Project_Group3/VGA-Controller/ise_project/testbench_beh.prj" "work.testbench" 
+-intstyle "ise" -incremental -o "C:/Users/feixn/Desktop/VLSI/Project_Group3/VGA-Controller/timing_fsm/ise_project/testbench_isim_beh.exe" -prj "C:/Users/feixn/Desktop/VLSI/Project_Group3/VGA-Controller/timing_fsm/ise_project/testbench_beh.prj" "work.testbench" 

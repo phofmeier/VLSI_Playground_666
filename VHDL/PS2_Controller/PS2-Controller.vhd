@@ -62,12 +62,14 @@ type STATES is (RST, START,
 					BIT_P, WAIT_BIT_P,
 					STOP_BIT, WAIT_STOP_BIT,
 					LAST_HIGH, CHECK_PARITY,
+					F0_DETECT, BRACKET_DETECT,
 					CHECK_BYTE,
 					DATA_ON_BUS,
 					DATA_OFF_BUS);
 signal state : STATES;
 signal data_sig : std_logic_vector(7 downto 0); --input register from Keyboard
 signal data_convert_sig : std_logic_vector(7 downto 0); --converted data_sig
+signal data_output : std_logic_vector(7 downto 0);
 signal parity_sig : std_logic;
 signal check_parity_sig : std_logic;
 signal idx_sig, idx_next_sig : integer range 0 to 7 := 0;
@@ -75,6 +77,8 @@ signal counter_sig : integer range 0 to 16 := 0;
 signal shift_reg_sig : STD_LOGIC_VECTOR(7 downto 0) := X"00";
 signal clock_div_sig : std_logic := '0';
 signal led_sig : std_logic_vector(7 downto 0);
+signal F0_sig : std_logic; --1: next data on bus 0: throw next data away
+signal shift_sig : std_logic; --1: shift is presst
 
 --Input codes from PS2-Keyboard
 constant key_1 : std_logic_vector(7 downto 0) := "00010110";
@@ -93,6 +97,17 @@ constant key_mul : std_logic_vector(7 downto 0) := "01111100";
 constant key_div : std_logic_vector(7 downto 0) := "01001010";
 constant key_enter : std_logic_vector(7 downto 0) := "01011010";
 
+constant key_0_KP : std_logic_vector(7 downto 0) := X"70";
+constant key_1_KP : std_logic_vector(7 downto 0) := X"69";
+constant key_2_KP : std_logic_vector(7 downto 0) := X"72";
+constant key_3_KP : std_logic_vector(7 downto 0) := X"7A";
+constant key_4_KP : std_logic_vector(7 downto 0) := X"6B";
+constant key_5_KP : std_logic_vector(7 downto 0) := X"73";
+constant key_6_KP : std_logic_vector(7 downto 0) := X"74";
+constant key_7_KP : std_logic_vector(7 downto 0) := X"6C";
+constant key_8_KP : std_logic_vector(7 downto 0) := X"75";
+constant key_9_KP : std_logic_vector(7 downto 0) := X"7D";
+
 --Converted codes to the Processor
 constant conv_1 : std_logic_vector(7 downto 0) := "00000001";
 constant conv_2 : std_logic_vector(7 downto 0) := "00000010";
@@ -109,6 +124,8 @@ constant conv_sub : std_logic_vector(7 downto 0) := "10000010";
 constant conv_mul : std_logic_vector(7 downto 0) := "10000011";
 constant conv_div : std_logic_vector(7 downto 0) := "10000100";
 constant conv_enter : std_logic_vector(7 downto 0) := "11101110";
+constant conv_bracket_left : std_logic_vector(7 downto 0) := X"0C";
+constant conv_bracket_right : std_logic_vector(7 downto 0) := X"C0";
 
 
 begin
@@ -120,6 +137,7 @@ begin
 			parity_sig <= '0';
 			check_parity_sig <= '0';
 			data_sig <= "00000000";
+			F0_sig <= '0';
 		elsif rising_edge (clk) then
 			case state is
 				when RST =>
@@ -288,15 +306,59 @@ begin
 				--End of the Inputdatas
 				
 				--Check the Parity-Bit an the Data converter
+				--Check the shift
 				when CHECK_PARITY =>
 					LED <= X"15";
 					if parity_sig = check_parity_sig then
-						state <= CHECK_BYTE;
+						state <= F0_DETECT;
 					else 
+						state <= START;
+					end if;
+					if data_sig = X"12" then
+						--if F0_sig <= '1' then
+						--	shift_sig <= '0';
+						--else
+							shift_sig <= '1';
+						--end if;
+					else
+					
+					end if;
+				when F0_DETECT =>
+					if (data_sig = X"F0") and (F0_sig = '0') then
+						F0_sig <= '1';
+						state <= START;
+					elsif F0_sig = '1' then
+						data_output <= data_convert_sig;
+						state <= BRACKET_DETECT;
+					else 
+						state <= START;
+					end if;
+					
+				when BRACKET_DETECT =>
+					if shift_sig = '1' and data_convert_sig = X"08" then
+						data_output <= conv_bracket_left;
+						state <= CHECK_BYTE;
+					elsif  shift_sig = '1' and data_convert_sig = X"09" then
+						data_output <= conv_bracket_right;
+						state <= CHECK_BYTE;
+					elsif shift_sig = '1' and data_sig = X"12" then
+						shift_sig <= '0';
+						state <= START;
+					elsif shift_sig = '0' then
+						state <= CHECK_BYTE;
+					else
 						state <= START;
 					end if;
 				when CHECK_BYTE =>
 					LED <= X"16";
+					F0_sig <= '0';
+					if data_sig = X"12" then
+						--shift button is released
+						shift_sig <= '0';
+					
+					
+					end if;
+					
 					
 		--this if loop is for the convertion of the input data.
 		--not necessary for milestone 2
@@ -304,8 +366,8 @@ begin
 					--	state <= START;
 					--else
 		--for processor design: interrupt bevor databus!
-						--databus <= data_convert_sig;
-						databus <= data_sig;
+						databus <= data_output;
+						--databus <= data_sig;
 						state <= DATA_ON_BUS;
 					--end if;
 				when DATA_ON_BUS =>
@@ -313,8 +375,8 @@ begin
 					--if OE = '1' then
 						interrupt <= '1';
 		--select, which data on the bus (convert or normal input)
-						--databus <= data_convert_sig;
-						databus <= data_sig;
+						databus <= data_output;
+						--databus <= data_sig;
 						state <= DATA_OFF_BUS;
 					--end if;
 				when DATA_OFF_BUS =>
@@ -355,6 +417,26 @@ begin
 			when key_9 => 
 				data_convert_sig <= conv_9;
 			when key_0 => 
+				data_convert_sig <= conv_0;
+			when key_1_KP => 
+				data_convert_sig <= conv_1;
+			when key_2_KP => 
+				data_convert_sig <= conv_2;				
+			when key_3_KP => 
+				data_convert_sig <= conv_3;
+			when key_4_KP => 
+				data_convert_sig <= conv_4;
+			when key_5_KP => 
+				data_convert_sig <= conv_5;
+			when key_6_KP => 
+				data_convert_sig <= conv_6;
+			when key_7_KP => 
+				data_convert_sig <= conv_7;
+			when key_8_KP => 
+				data_convert_sig <= conv_8;
+			when key_9_KP => 
+				data_convert_sig <= conv_9;
+			when key_0_KP => 
 				data_convert_sig <= conv_0;
 			when key_add => 
 				data_convert_sig <= conv_add;
