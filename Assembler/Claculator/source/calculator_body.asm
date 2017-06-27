@@ -602,6 +602,7 @@ outputInitScreen:
 
 
 # -----------------------------------------------------------------------------
+# DONE: 14.06.17
 # TODO: Function outputClrScreen
 # Functionality: If this function is called, the screen should be cleared and 
 #                the next character should be outputted at the upper-left 
@@ -615,7 +616,7 @@ outputClrScreen:
 		  load	constNrOfVgaMemory
 		  store	count
 		loopOutputClrScreen:
-			load	const0
+			load	const_space
 			store	($ptr3)inc
 			load	count
 			sub		const1
@@ -623,14 +624,18 @@ outputClrScreen:
 			bz		skipLoopOutputClrScreen
 			jump	loopOutputClrScreen
 		skipLoopOutputClrScreen:	
-		  load	const0
+		  load 	vgaAddr
+		  store	screenLineAddr
+		  store	$ptr3
+		  load 	const0
+		  store	screenSecondChar  # begin with first char
 		  store	screenColum
-		  store	screenLine
 		  
           ret   
 
 
 # -----------------------------------------------------------------------------
+# Done: 21.06.2017
 # TODO: Function outputNewLine
 # Functionality: If this function is called, the following text should be 
 #                outputted in the next line
@@ -638,11 +643,25 @@ outputClrScreen:
 
           .type outputNewLine, @function
 outputNewLine:
-          # FILL YOUR CODE HERE
+			load 	const0
+			store	screenColum
+			store	screenSecondChar # begin with first char
+			load	screenLineAddr
+			add		constLineOffset
+			store	screenLineAddr
+			store	$ptr3
+			load	constLastAddr
+			sub		screenLineAddr
+			bn		rowOverflow		# check if last row then jump to first row
           ret
-
+rowOverflow:						# set first row
+			load 	vgaAddr
+			store	screenLineAddr
+			store	$ptr3
+			ret
 
 # -----------------------------------------------------------------------------
+# Done: 21.06.2017
 # TODO: Function outputChar
 # Functionality: output a single character, the character to be outputted is 
 #                stored in the variable 'outpchar' (-> can be loaded with
@@ -652,11 +671,46 @@ outputNewLine:
  
           .type outputChar, @function
 outputChar:
-          # FILL YOUR CODE HERE
+			load	screenSecondChar
+			bz		printSecondChar		# check if first char or second char should be printed
+			load	outpchar
+			add 	constFF00			# set first 8 bit to 1
+			rotr						# rotate 8 times right to have the cahr on the first 8 bit
+			rotr
+			rotr
+			rotr
+			rotr
+			rotr
+			rotr
+			rotr
+			store	firstChar			# store first char for print second
+			and		constFirstCharMask	# set second char to 0x20
+			store	($ptr3)				# set char to Memory
+			load 	const1
+			store	screenSecondChar	# next Char is a second char
+			add		screenColum			# keep track of screenColum
+			store	screenColum
+			load	constMaxScreenColum
+			sub		screenColum
+			bn		ScreenLineOverflow
           ret
-
+ScreenLineOverflow:
+			call	outputNewLine		# Start in a new Line
+		  ret
+printSecondChar:
+			load	firstChar
+			and		outpchar
+			store	($ptr3)inc
+			load	const0
+			store	screenSecondChar	# next char is first char
+			load	const1
+			add		screenColum			# keep track of screen colum
+			store	screenColum
+		  ret
+		
 
 # -----------------------------------------------------------------------------
+# Done: 21.06.2017
 # TODO: Function outputText
 # Functionality: If this function is called, the text where the pointer $ptr2
 #                points to should be outputted. The end of the text is marked
@@ -667,11 +721,29 @@ outputChar:
 
           .type outputText, @function
 outputText: 
-          # FILL YOUR CODE HERE
-          ret
-
+			load	($ptr2)
+			shr							# rotate 8 bit
+			shr
+			shr
+			shr
+			shr
+			shr
+			shr
+			shr
+			bz	endOfText					# if zero -> end of text
+			store	outpchar
+			call	outputChar
+			load	($ptr2)inc
+			and		constSecondByteMask		# use only second byte
+			bz	endOfText					# if zero -> end of text
+			store	outpchar
+			call	outputChar
+			jump	outputText				# process next Addres
+	endOfText:
+			ret
 
 # -----------------------------------------------------------------------------
+# Done: 21.06.2017
 # TODO: Function outputLine
 # Functionality: If this function is called, a line of "-" should be outputted 
 #                (thus simply 80 characters "-")
@@ -679,7 +751,21 @@ outputText:
 
           .type outputLine, @function
 outputLine:
-          # FILL YOUR CODE HERE
+          call	outputNewLine		# Start with new row
+		  
+		  load	constLineOffset		# Number of loops
+		  store	count
+		loopOutputLine:
+			load	charDoubleMinus
+			store	($ptr3)inc		# write '--' to VGA Controller
+			load	count
+			sub		const1
+			store	count
+			bz		skipLoopOutputLine	# loop 40 times
+			jump	loopOutputLine
+		skipLoopOutputLine:			
+		  
+		  call	outputNewLine		# End in new Row
           ret
 
 
@@ -693,8 +779,23 @@ outputLine:
 
           .type outputNumber, @function
 outputNumber:
-          # FILL YOUR CODE HERE
-          ret
+          # branch if negative if negative -> write '-' and complement number
+			load	currNum
+			bn		OutputNegNumber
+		OutputPositiveNr:
+		
+				
+				ret
+			
+		OutputNegNumber:
+			comp   				# complement Nr. to get positive Nr
+			store	currNum		
+			load 	charminus	# print minus		
+			store	outpchar
+			call	outputChar
+			load	currNum		# load positv Nr. back to Acc
+			jump	OutputPositiveNr
+          
 
 
 
@@ -706,6 +807,7 @@ outputNumber:
 # -----------------------------------------------------
 
 # -----------------------------------------------------------------------------
+# DONE: 14.06.17
 # TODO: Interrupt Service Routine getCharRoutine 
 # Functionality: This function is the Interrupt Service Routine for an 
 #                interrupt caused by the keyboard interface. 
@@ -742,8 +844,9 @@ const0:   .word 0x0000  # constant zero
 const1:   .word 0x0001  # constant one
 const2:   .word 0x0002  # constant two
 constA:   .word 0x000A  # constant ten
+constFF00: .word	0xFF00 # constant 0xFF00
 
-spinit:   .word 0x07FF  # stack pointer init value
+spinit:   .word 0x06FF  # stack pointer init value
 ieinit:   .word 0x0102  # interrupt enable 
 
 maskOV:    .word 0x0008 # mask for overflow bit
@@ -766,9 +869,13 @@ char8:     .ascii "\0008"
 char9:     .ascii "\0009"
 chardiv:   .ascii "\0/"
 charEq:    .ascii "\0="
+charDoubleMinus: .ascii "\--"
+const_space: .word 0x2020 # ASCII for double Space
 
-
-
+constFirstCharMask:	 .word	0xFF20 # Mask for hold first byte and set second byte to 0x20(space)
+constFirstByteMask:	 .word	0xFF00 # Mask for first byte
+constSecondByteMask: .word	0x00FF # Mask for second byte
+	
 txtError:  .ascii "Error!\0\0"
 txtErrorAddr:  getaddr txtError
 
@@ -782,7 +889,10 @@ txtWelcomeAddr: getaddr txtWelcome
 .set    keyboardAddr,  0x0FFF << 1 # Adress for the Keyboard
 .set	vgaAddr,		0x700 << 1 # First Adress for the VGA controller 
 
-constNrOfVgaMemory:	.word	0x640 # Nr. of VGA Memory adresses
+constNrOfVgaMemory:	.word	0x0640 # Nr. of VGA Memory adresses
+constLineOffset: 	.word	0x0028 # Nr of Characters in One row
+constLastAddr:		.word	0x0D40 # Last Addr
+constMaxScreenColum: .word	0x004F	# Maximum of char per colum
 
 
 # -----------------------------------------------------
@@ -826,9 +936,13 @@ brFrameBase: .word 0x000
 
 # variables VGA
 count:			.word	0x000
-screenLine:		.word	0x000
+screenLineAddr:		.word	0x000
 screenColum:	.word	0x000
+screenSecondChar:	.word	0x0000
 
+firstChar:			.word	0x0000
+
+	
 
 
 

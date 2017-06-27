@@ -36,13 +36,13 @@ use IEEE.STD_LOGIC_MISC.ALL;
 
 entity PS2_Controller is
     Port ( OE : in  STD_LOGIC;
-           databus : out  STD_LOGIC_VECTOR (7 downto 0);
+           databus : out  STD_LOGIC_VECTOR (15 downto 0);
            interrupt : out  STD_LOGIC;
            clk : in  STD_LOGIC;
            reset : in  STD_LOGIC;
            PS2clk : in  STD_LOGIC;
-           PS2data : in  STD_LOGIC;
-			  LED :  out std_logic_vector (7 downto 0)); --LED for debugging
+           PS2data : in  STD_LOGIC);
+			  --LED :  out std_logic_vector (7 downto 0)); --LED for debugging
 end PS2_Controller;
 
 architecture Behavioral of PS2_Controller is
@@ -79,6 +79,7 @@ signal clock_div_sig : std_logic := '0';
 signal led_sig : std_logic_vector(7 downto 0);
 signal F0_sig : std_logic; --1: next data on bus 0: throw next data away
 signal shift_sig : std_logic; --1: shift is presst
+signal KP_enable_sig : std_logic;	--enable of Numped
 
 --Input codes from PS2-Keyboard
 constant key_1 : std_logic_vector(7 downto 0) := "00010110";
@@ -107,25 +108,26 @@ constant key_6_KP : std_logic_vector(7 downto 0) := X"74";
 constant key_7_KP : std_logic_vector(7 downto 0) := X"6C";
 constant key_8_KP : std_logic_vector(7 downto 0) := X"75";
 constant key_9_KP : std_logic_vector(7 downto 0) := X"7D";
+constant key_enable_KP : std_logic_vector(7 downto 0) := X"77";
 
 --Converted codes to the Processor
-constant conv_1 : std_logic_vector(7 downto 0) := "00000001";
-constant conv_2 : std_logic_vector(7 downto 0) := "00000010";
-constant conv_3 : std_logic_vector(7 downto 0) := "00000011";
-constant conv_4 : std_logic_vector(7 downto 0) := "00000100";
-constant conv_5 : std_logic_vector(7 downto 0) := "00000101";
-constant conv_6 : std_logic_vector(7 downto 0) := "00000110";
-constant conv_7 : std_logic_vector(7 downto 0) := "00000111";
-constant conv_8 : std_logic_vector(7 downto 0) := "00001000";
-constant conv_9 : std_logic_vector(7 downto 0) := "00001001";
-constant conv_0 : std_logic_vector(7 downto 0) := "00000000";
-constant conv_add : std_logic_vector(7 downto 0) := "10000001";
-constant conv_sub : std_logic_vector(7 downto 0) := "10000010";
-constant conv_mul : std_logic_vector(7 downto 0) := "10000011";
-constant conv_div : std_logic_vector(7 downto 0) := "10000100";
-constant conv_enter : std_logic_vector(7 downto 0) := "11101110";
-constant conv_bracket_left : std_logic_vector(7 downto 0) := X"0C";
-constant conv_bracket_right : std_logic_vector(7 downto 0) := X"C0";
+constant conv_1 : std_logic_vector(7 downto 0) := X"31";
+constant conv_2 : std_logic_vector(7 downto 0) := X"32";
+constant conv_3 : std_logic_vector(7 downto 0) := X"33";
+constant conv_4 : std_logic_vector(7 downto 0) := X"34";
+constant conv_5 : std_logic_vector(7 downto 0) := X"35";
+constant conv_6 : std_logic_vector(7 downto 0) := X"36";
+constant conv_7 : std_logic_vector(7 downto 0) := X"37";
+constant conv_8 : std_logic_vector(7 downto 0) := X"38";
+constant conv_9 : std_logic_vector(7 downto 0) := X"39";
+constant conv_0 : std_logic_vector(7 downto 0) := X"30";
+constant conv_add : std_logic_vector(7 downto 0) := X"2B";
+constant conv_sub : std_logic_vector(7 downto 0) := X"2D";
+constant conv_mul : std_logic_vector(7 downto 0) := X"2A";
+constant conv_div : std_logic_vector(7 downto 0) := X"2F";
+constant conv_enter : std_logic_vector(7 downto 0) := X"3D";
+constant conv_bracket_left : std_logic_vector(7 downto 0) := X"28";
+constant conv_bracket_right : std_logic_vector(7 downto 0) := X"29";
 
 
 begin
@@ -133,18 +135,19 @@ begin
 	begin
 		if reset = '1' then
 			state <= START;
-			databus <= "ZZZZZZZZ";
+			databus <= "ZZZZZZZZZZZZZZZZ";
 			parity_sig <= '0';
 			check_parity_sig <= '0';
 			data_sig <= "00000000";
 			F0_sig <= '0';
+			interrupt <= '0';
 		elsif rising_edge (clk) then
 			case state is
 				when RST =>
 					state <= START;
 				when START =>
 					--LED <= X"F0";
-					led_sig <= X"00";
+					--led_sig <= X"00";
 					--if ps2clk = '0' then
 					if shift_reg_sig(6) = '0' and shift_reg_sig(1) = '1' then
 						data_sig <= "00000000";
@@ -336,11 +339,11 @@ begin
 					
 				when BRACKET_DETECT =>
 				-- 8 and shift is equal to bracket_left
-					if shift_sig = '1' and data_convert_sig = X"08" then
+					if shift_sig = '1' and data_convert_sig = conv_8 then
 						data_output <= conv_bracket_left;
 						state <= CHECK_BYTE;
 				-- 9 and shift is equal to bracket_right
-					elsif  shift_sig = '1' and data_convert_sig = X"09" then
+					elsif  shift_sig = '1' and data_convert_sig = conv_9 then
 						data_output <= conv_bracket_right;
 						state <= CHECK_BYTE;
 				-- 0 with shift is equal to enter
@@ -375,39 +378,40 @@ begin
 					if data_sig = X"12" or data_sig = X"59" then
 						--shift button is released
 						shift_sig <= '0';
-					
-					
 					end if;
-					
-					
-		--this if loop is for the convertion of the input data.
-		--not necessary for milestone 2
-					--if data_convert_sig = "11111111" then
-					--	state <= START;
-					--else
-		--for processor design: interrupt bevor databus!
-						databus <= data_output;
-						--databus <= data_sig;
+					if data_sig = key_enable_KP then
+						KP_enable_sig <= KP_enable_sig xor '1';
+						state <= START;
+					end if;
+
+					if data_convert_sig = "11111111" then
+						state <= START;
+					else
+						interrupt <= '1';
 						state <= DATA_ON_BUS;
-					--end if;
+					end if;
 				when DATA_ON_BUS =>
 					--LED <= X"17";
-					--if OE = '1' then
-						interrupt <= '1';
+					if OE = '1' then
 		--select, which data on the bus (convert or normal input)
-						databus <= data_output;
+						databus <= "00000000" & data_output;
+						interrupt <= '0';
 						--databus <= data_sig;
 						state <= DATA_OFF_BUS;
-					--end if;
+					end if;
 				when DATA_OFF_BUS =>
 					--LED <= X"18";
 		--for Hardwaretest comment the if because there is no OE!
 		--Simulation only works with if
-					--if OE = '0' then
-						databus <= "ZZZZZZZZ";
+					if OE = '0' then
+						databus <= "ZZZZZZZZZZZZZZZZ";
 						interrupt <= '0';
 						state <= START;
-					--end if;
+					else
+						databus <= "00000000" & data_output;
+						interrupt <= '0';
+						state <= DATA_OFF_BUS;
+					end if;
 				when others =>
 					--LED <= X"EF";
 					state <= RST;
@@ -415,19 +419,19 @@ begin
 		end if;
 	end process;
 	
-	process (clk, reset, OE, PS2clk, PS2data)
-	begin
-		if F0_sig = '1' then
-			LED(0) <= '1';
-		else
-			LED(0) <= '0';
-		end if;
-		if shift_sig = '1' then
-			LED(1) <= '1';
-		else
-			LED(1) <= '0';
-		end if;
-	end process;
+--	process (clk, reset, OE, PS2clk, PS2data)
+--	begin
+--		if F0_sig = '1' then
+--			LED(0) <= '1';
+--		else
+--			LED(0) <= '0';
+--		end if;
+--		if shift_sig = '1' then
+--			LED(1) <= '1';
+--		else
+--			LED(1) <= '0';
+--		end if;
+--	end process;
 			
 	
 	process (clk, reset, OE, PS2clk, PS2data)
@@ -454,25 +458,65 @@ begin
 			when key_0 => 
 				data_convert_sig <= conv_0;
 			when key_1_KP => 
-				data_convert_sig <= conv_1;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_1;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_2_KP => 
-				data_convert_sig <= conv_2;				
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_2;
+				else 
+					data_convert_sig <= "11111111";
+				end if;				
 			when key_3_KP => 
-				data_convert_sig <= conv_3;
-			when key_4_KP => 
-				data_convert_sig <= conv_4;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_3;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
+			when key_4_KP =>
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_4;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_5_KP => 
-				data_convert_sig <= conv_5;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_5;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_6_KP => 
-				data_convert_sig <= conv_6;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_6;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_7_KP => 
-				data_convert_sig <= conv_7;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_7;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_8_KP => 
-				data_convert_sig <= conv_8;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_8;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_9_KP => 
-				data_convert_sig <= conv_9;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_9;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_0_KP => 
-				data_convert_sig <= conv_0;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_0;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_add => 
 				data_convert_sig <= conv_add;
 			when key_add2 => 
