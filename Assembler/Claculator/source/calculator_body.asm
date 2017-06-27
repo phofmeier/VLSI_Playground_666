@@ -779,22 +779,112 @@ outputLine:
 
           .type outputNumber, @function
 outputNumber:
+			# initialize everything to 0
+			load	const0
+			store	OutputNr_0
+			store	OutputNr_1
+			store	OutputNr_2
+			store	OutputNr_3
+			store	OutputNr_4
           # branch if negative if negative -> write '-' and complement number
 			load	currNum
 			bn		OutputNegNumber
-		OutputPositiveNr:
+		OutputPositiveNr:	# Start calculating the bin 2 decimal of the Nr.
+			load	currNum
+			sub 	const10k	# substract 10000
+			store	currNum
+			bn		firstCharReady # if curNr. negative Nr < x*10000
+			load	OutputNr_0		# else Nr > x*10000  
+			add		const1			# increment Char (x)
+			store	OutputNr_0		# store Char
+			jump	OutputPositiveNr # try again with x incremented
+		firstCharReady:
+			add		const10k		# add 10000	again to get back the last Nr.
+		secondCharProcess:	
+			sub		const1k			# substract 1000 for next decimal Position	
+			store	currNum			# store the new Nr.
+			bn		secondCharReady	# if negative smaller than	x* 1000
+			load	OutputNr_1		# increment Char
+			add		const1
+			store	OutputNr_1
+			load	currNum			# load Nr
+			jump	secondCharProcess # start again with incrementetd x 
+		secondCharReady:
+			add		const1k
+		thirdCharProcess:	
+			sub		const100
+			store	currNum
+			bn		thirdCharReady
+			load	OutputNr_2
+			add		const1
+			store	OutputNr_2
+			load	currNum
+			jump	thirdCharProcess
+		thirdCharReady:
+			add		const100
+		fourthCharProcess:	
+			sub		const10
+			store	currNum
+			bn		fourthCharReady
+			load	OutputNr_3
+			add		const1
+			store	OutputNr_3
+			load	currNum
+			jump	fourthCharProcess
+		fourthCharReady:
+			add		const10
+			store	OutputNr_4
 		
+	# Output the calculated Number
+		load	OutputNr_0		# load first Char
+		bz		OutputNoFirstElement # if zero don't output first char
+		call	OutputNumberPrint	# else output all chars
+		load	OutputNr_1
+	OutputSecondElement:	
+		call	OutputNumberPrint
+		load	OutputNr_2
+	OutputThirdElement:	
+		call	OutputNumberPrint
+		load	OutputNr_3
+	OutputFourthElement:	
+		call	OutputNumberPrint
+		load	OutputNr_1
+	OutputFifthElement:	
+		call	OutputNumberPrint
+		
+		ret		# end of OutputNumber
+		
+OutputNoFirstElement:
+			load	OutputNr_1				# Load second char
+			bz		OutputNoSecondElement 	# if zero don't output Second Char
+			jump	OutputSecondElement		# else output second to fifth char
+OutputNoSecondElement:
+			load	OutputNr_2
+			bz		OutputNoThirdElement
+			jump	OutputThirdElement
+OutputNoThirdElement:
+			load	OutputNr_3
+			bz		OutputNoFourthElement
+			jump	OutputFourthElement
+OutputNoFourthElement:
+			load	OutputNr_4
+			jump	OutputFifthElement	
 				
-				ret
-			
-		OutputNegNumber:
+				
+OutputNumberPrint: # print Nr. in the Accu as Ascii
+			add		const_ascii_offset
+			store	outpchar
+			call	outputChar
+			ret
+		
+OutputNegNumber: # for negative Nr. print "-" sign
 			comp   				# complement Nr. to get positive Nr
 			store	currNum		
 			load 	charminus	# print minus		
 			store	outpchar
 			call	outputChar
 			load	currNum		# load positv Nr. back to Acc
-			jump	OutputPositiveNr
+			jump	OutputPositiveNr # Print rest of the Nr like a positive Nr
           
 
 
@@ -845,6 +935,10 @@ const1:   .word 0x0001  # constant one
 const2:   .word 0x0002  # constant two
 constA:   .word 0x000A  # constant ten
 constFF00: .word	0xFF00 # constant 0xFF00
+const10k:	.word	0x2710 # constant 10000	
+const1k:	.word	0x03E8 # constant 1000
+const100:	.word	0x0064 # constant 100
+const10:	.word	0x000A # constant 10
 
 spinit:   .word 0x06FF  # stack pointer init value
 ieinit:   .word 0x0102  # interrupt enable 
@@ -871,6 +965,8 @@ chardiv:   .ascii "\0/"
 charEq:    .ascii "\0="
 charDoubleMinus: .ascii "\--"
 const_space: .word 0x2020 # ASCII for double Space
+
+const_ascii_offset: .word	0x0030 # Offset to convert from binary to ascii
 
 constFirstCharMask:	 .word	0xFF20 # Mask for hold first byte and set second byte to 0x20(space)
 constFirstByteMask:	 .word	0xFF00 # Mask for first byte
@@ -941,6 +1037,15 @@ screenColum:	.word	0x000
 screenSecondChar:	.word	0x0000
 
 firstChar:			.word	0x0000
+
+# variables OutputNr
+
+OutputNr_0:	.word	0x0000
+OutputNr_1:	.word	0x0000
+OutputNr_2:	.word	0x0000
+OutputNr_3:	.word	0x0000
+OutputNr_4:	.word	0x0000
+
 
 	
 
