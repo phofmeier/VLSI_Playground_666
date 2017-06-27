@@ -79,6 +79,7 @@ signal clock_div_sig : std_logic := '0';
 signal led_sig : std_logic_vector(7 downto 0);
 signal F0_sig : std_logic; --1: next data on bus 0: throw next data away
 signal shift_sig : std_logic; --1: shift is presst
+signal KP_enable_sig : std_logic;	--enable of Numped
 
 --Input codes from PS2-Keyboard
 constant key_1 : std_logic_vector(7 downto 0) := "00010110";
@@ -107,6 +108,7 @@ constant key_6_KP : std_logic_vector(7 downto 0) := X"74";
 constant key_7_KP : std_logic_vector(7 downto 0) := X"6C";
 constant key_8_KP : std_logic_vector(7 downto 0) := X"75";
 constant key_9_KP : std_logic_vector(7 downto 0) := X"7D";
+constant key_enable_KP : std_logic_vector(7 downto 0) := X"77";
 
 --Converted codes to the Processor
 constant conv_1 : std_logic_vector(7 downto 0) := X"31";
@@ -337,11 +339,11 @@ begin
 					
 				when BRACKET_DETECT =>
 				-- 8 and shift is equal to bracket_left
-					if shift_sig = '1' and data_convert_sig = X"08" then
+					if shift_sig = '1' and data_convert_sig = conv_8 then
 						data_output <= conv_bracket_left;
 						state <= CHECK_BYTE;
 				-- 9 and shift is equal to bracket_right
-					elsif  shift_sig = '1' and data_convert_sig = X"09" then
+					elsif  shift_sig = '1' and data_convert_sig = conv_9 then
 						data_output <= conv_bracket_right;
 						state <= CHECK_BYTE;
 				-- 0 with shift is equal to enter
@@ -377,14 +379,15 @@ begin
 						--shift button is released
 						shift_sig <= '0';
 					end if;
+					if data_sig = key_enable_KP then
+						KP_enable_sig <= KP_enable_sig xor '1';
+						state <= START;
+					end if;
 
 					if data_convert_sig = "11111111" then
 						state <= START;
 					else
-					interrupt <= '1';
-		--for processor design: interrupt bevor databus!
-						
-						--databus <= data_sig;
+						interrupt <= '1';
 						state <= DATA_ON_BUS;
 					end if;
 				when DATA_ON_BUS =>
@@ -455,25 +458,65 @@ begin
 			when key_0 => 
 				data_convert_sig <= conv_0;
 			when key_1_KP => 
-				data_convert_sig <= conv_1;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_1;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_2_KP => 
-				data_convert_sig <= conv_2;				
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_2;
+				else 
+					data_convert_sig <= "11111111";
+				end if;				
 			when key_3_KP => 
-				data_convert_sig <= conv_3;
-			when key_4_KP => 
-				data_convert_sig <= conv_4;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_3;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
+			when key_4_KP =>
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_4;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_5_KP => 
-				data_convert_sig <= conv_5;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_5;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_6_KP => 
-				data_convert_sig <= conv_6;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_6;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_7_KP => 
-				data_convert_sig <= conv_7;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_7;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_8_KP => 
-				data_convert_sig <= conv_8;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_8;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_9_KP => 
-				data_convert_sig <= conv_9;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_9;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_0_KP => 
-				data_convert_sig <= conv_0;
+				if KP_enable_sig = '1' then
+					data_convert_sig <= conv_0;
+				else 
+					data_convert_sig <= "11111111";
+				end if;
 			when key_add => 
 				data_convert_sig <= conv_add;
 			when key_add2 => 
