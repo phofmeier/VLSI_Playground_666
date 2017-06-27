@@ -1,0 +1,10 @@
+entity timing_module is
+   port ( hsync         : out std_logic;
+          vsync         : out std_logic;
+          pixel_clk     : out std_logic;  -- '1' divided clock signal
+          pixel_en      : out std_logic;  -- '1' during image output time frame
+          pixel_top     : out std_logic;  -- '1' when at top pixels (y = 0)
+          pixel_left    : out std_logic;  -- '1' when at left pixels (x = 0)
+          clk           : in  std_logic;
+          reset         : in  std_logic );
+end timing_module;
