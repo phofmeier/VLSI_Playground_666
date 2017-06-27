@@ -108,7 +108,7 @@ ieinit:   .word 0x0102  # interrupt enable
 
 .set    keyboardAddr,  	0x0FFF << 1 # Adress for the Keyboard
 .set	vgaAddr,			0x700 << 1 # First Adress for the VGA controller 
-.set	debugAddr,		0xFFF << 1 # Adress of the debuging module
+.set	debugAddr,		0xFFE << 1 # Adress of the debuging module
 
 
 # -----------------------------------------------------
