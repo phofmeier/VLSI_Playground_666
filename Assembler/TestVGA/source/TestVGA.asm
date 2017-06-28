@@ -75,22 +75,22 @@ wait_for_knop: # only return when the knop is used
 # -----------------------------------------------------
 # constants
 # -----------------------------------------------------
-const0:   .word 0x0000  # constant zero
-const1:   .word 0x0001  # constant one
-constF:		.word 0x000F # constant 0xF
-maskRotEvent:   .word   0xE000  # mask either rotary knob event
+const0:   		.word 0x0000  # constant zero
+const1:   		.word 0x0001  # constant one
+constF:			.word 0x000F # constant 0xF
+maskRotEvent:   .word 0xE000  # mask either rotary knob event
 
-spinit:   .word 0x06FF  # stack pointer init value
-#ieinit:   .word 0x0102  # interrupt enable 
+spinit:   		.word 0x06FF  # stack pointer init value
+#ieinit:   		.word 0x0102  # interrupt enable 
 
-# .set    keyboardAddr,  0x0FFF << 1 # Adress for the Keyboard
-.set	vgaAddr,		0x700 << 1 # First Adress for the VGA controller 
+#.set	keyboardAddr,	0x0FFF << 1 # Adress for the Keyboard
+.set	vgaAddr,		0x0700 << 1 # First Adress for the VGA controller 
 .set	debugAddr,		0x0FFF << 1 # Adresse for debug Module
 
 #constNrOfVgaMemory:	.word	0x0640 # Nr. of VGA Memory adresses
-#constLineOffset: 	.word	0x0028 # Nr of Characters in One row
-#constLastAddr:		.word	0x0D40 # Last Addr
-#constMaxScreenColum: .word	0x004F	# Maximum of char per colum
+#constLineOffset: 		.word	0x0028 # Nr of Characters in One row
+#constLastAddr:			.word	0x0D40 # Last Addr
+#constMaxScreenColum: 	.word	0x004F	# Maximum of char per colum
 
 
 # -----------------------------------------------------
