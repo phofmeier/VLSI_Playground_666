@@ -137,16 +137,10 @@ begin
       cout     => ALUflags(2),
       ov       => ALUflags(3) );
 
---   tri_data: entity tristate_N
---   generic map (N => 16)
---   port map(
---      T => enRes,
---      I => result,
---      O => databus );
-
    int_unit: entity edge_detect
    generic map (N => 8)
    port map(
+      clk      => clk,
       input    => interrupt,
       reset    => ireset,
       output   => ibuff );
