@@ -45,7 +45,7 @@ architecture Behavioral of UKM910 is
    signal selIEN        : std_logic;
    signal selIFLAG      : std_logic;
    -- Register enable lines
-   signal enPC, enIR, enACC, enRes     : std_logic;
+   signal enPC, enIR, enACC            : std_logic;
    signal enPSW, enIEN, enIFLAG        : std_logic;
    signal enSP, enPTR1, enPTR2, enPTR3 : std_logic;
    -- Register definitions
@@ -59,9 +59,9 @@ architecture Behavioral of UKM910 is
    signal regIEN        : std_logic_vector(8 downto 0)  := (others => '0');
    signal regIFLAG      : std_logic_vector(7 downto 0)  := (others => '0');
 
-   constant SEL_DATA_HIGHZ : std_logic_vector(1 downto 0) := "00";
-   constant SEL_DATA_PC    : std_logic_vector(1 downto 0) := "01";
-   constant SEL_DATA_ACC   : std_logic_vector(1 downto 0) := "10";
+   constant SEL_DATA_PC    : std_logic_vector(1 downto 0) := "00";
+   constant SEL_DATA_ACC   : std_logic_vector(1 downto 0) := "01";
+   constant SEL_DATA_HIGHZ : std_logic_vector(1 downto 0) := "11";
 
    constant SEL_A_PSW      : std_logic_vector(1 downto 0) := "00";
    constant SEL_A_IEN      : std_logic_vector(1 downto 0) := "01";
