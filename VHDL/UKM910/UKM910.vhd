@@ -18,13 +18,15 @@ use work.all;
 entity UKM910 is
    port ( clk, reset : in std_logic;
           interrupt  : in std_logic_vector (7 downto 0);
-          oe, we   : out std_logic;
+          oe, we     : out std_logic;
           addressbus : out std_logic_vector (11 downto 0);
           databus    : inout std_logic_vector (15 downto 0) );
 end UKM910;
 
 architecture Behavioral of UKM910 is
 
+   -- signal data_in       : std_logic_vector(15 downto 0);
+   -- signal data_out      : std_logic_vector(15 downto 0);
    signal result        : std_logic_vector(15 downto 0);
    signal A_bus, B_bus  : std_logic_vector(15 downto 0);
    signal ALUfunc       : std_logic_vector(3 downto 0);
@@ -37,7 +39,7 @@ architecture Behavioral of UKM910 is
    signal gie           : std_logic;
    signal ALUflags      : std_logic_vector(3 downto 0);
    -- MUX select lines
-   signal selA          : std_logic_vector(1 downto 0);
+   signal selA, selData : std_logic_vector(1 downto 0);
    signal selB, selAddr : std_logic_vector(2 downto 0);
    signal selPSW        : std_logic;
    signal selIEN        : std_logic;
@@ -57,6 +59,10 @@ architecture Behavioral of UKM910 is
    signal regIEN        : std_logic_vector(8 downto 0)  := (others => '0');
    signal regIFLAG      : std_logic_vector(7 downto 0)  := (others => '0');
 
+   constant SEL_DATA_HIGHZ : std_logic_vector(1 downto 0) := "00";
+   constant SEL_DATA_PC    : std_logic_vector(1 downto 0) := "01";
+   constant SEL_DATA_ACC   : std_logic_vector(1 downto 0) := "10";
+
    constant SEL_A_PSW      : std_logic_vector(1 downto 0) := "00";
    constant SEL_A_IEN      : std_logic_vector(1 downto 0) := "01";
    constant SEL_A_IFLAG    : std_logic_vector(1 downto 0) := "10";
@@ -73,7 +79,7 @@ architecture Behavioral of UKM910 is
    constant SEL_ADDR_IVECT : std_logic_vector(2 downto 0) := "000";
    constant SEL_ADDR_PC    : std_logic_vector(2 downto 0) := "001";
    constant SEL_ADDR_IR    : std_logic_vector(2 downto 0) := "010";
-   constant SEL_ADDR_RESULT: std_logic_vector(2 downto 0) := "011";
+   -- constant SEL_ADDR_RESULT: std_logic_vector(2 downto 0) := "011";
    constant SEL_ADDR_SP    : std_logic_vector(2 downto 0) := "100";
    constant SEL_ADDR_PTR1  : std_logic_vector(2 downto 0) := "101";
    constant SEL_ADDR_PTR2  : std_logic_vector(2 downto 0) := "110";
@@ -106,7 +112,8 @@ begin
       enPSW       => enPSW,
       enIEN       => enIEN,
       enIFLAG     => enIFLAG,
-      enRes       => enRes,
+      --enRes       => enRes,
+      selData     => selData,
       selAddr     => selAddr,
       selA        => selA,
       selB        => selB,
@@ -136,16 +143,10 @@ begin
       cout     => ALUflags(2),
       ov       => ALUflags(3) );
 
---   tri_data: entity tristate_N
---   generic map (N => 16)
---   port map(
---      T => enRes,
---      I => result,
---      O => databus );
-
    int_unit: entity edge_detect
    generic map (N => 8)
    port map(
+      clk      => clk,
       input    => interrupt,
       reset    => ireset,
       output   => ibuff );
@@ -158,8 +159,8 @@ begin
             addressbus <= regPC;
          when SEL_ADDR_IR =>
             addressbus <= regIR(11 downto 0);
-         when SEL_ADDR_RESULT =>  -- only used for LOADIDEC (saves one cycle)
-            addressbus <= result(11 downto 0);
+         -- when SEL_ADDR_RESULT =>  -- only used for LOADIDEC (saves one cycle)
+            -- addressbus <= result(11 downto 0);
          when SEL_ADDR_SP =>
             addressbus <= regSP;
          when SEL_ADDR_PTR1 =>
@@ -184,10 +185,21 @@ begin
       end case;
    end process;
 
+   databus_mux: process(selData, regPC, regACC) begin
+      case ( selData ) is
+         when SEL_DATA_PC =>
+            databus <= x"0" & regPC;
+         when SEL_DATA_ACC =>
+            databus <= regACC;
+         when others =>  -- SEL_DATA_HIGHZ
+            databus <= (others => 'Z');
+      end case;
+   end process;
+
    B_bus_mux: process(selB, databus, regPC, regIR, regSP, regPTR1, regPTR2, regPTR3) begin
       case ( selB ) is
          when SEL_B_DATA =>
-            B_bus <= databus;
+            B_bus <= databus;  -- data_in;
          when SEL_B_PC =>
             B_bus <= x"0" & regPC;
          when SEL_B_IR =>
@@ -252,7 +264,7 @@ begin
       end if;
    end process;
 
-   databus <= result when (enRes = '1') else (others => 'Z');
+   --databus   <= result  when (enRes = '1') else (others => 'Z');
    iinternal <= ibuff or regIFLAG;
 
 end Behavioral;

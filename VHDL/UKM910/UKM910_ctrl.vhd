@@ -23,8 +23,8 @@ entity UKM910_ctrl is
           enPSW, enSP, enPTR1 : out std_logic;
           enPTR2, enPTR3      : out std_logic;
           enIEN, enIFLAG      : out std_logic;
-          enRes               : out std_logic;
-          selA                : out std_logic_vector(1 downto 0);
+          --enRes               : out std_logic;
+          selA, selData       : out std_logic_vector(1 downto 0);
           selB, selAddr       : out std_logic_vector(2 downto 0);
           selPSW              : out std_logic;
           selIEN, selIFLAG    : out std_logic;
@@ -36,8 +36,8 @@ end UKM910_ctrl;
 architecture Behavioral of UKM910_ctrl is
 
    type STATES is (
-      RESET, FETCH1, FETCH2, DECODE, EXT_INT1, EXT_INT2,
-      EXECUTE_MAIN, EXECUTE_LOADI, EXECUTE_STOREI,
+      RESET, FETCH1, FETCH2, DECODE, EXECUTE_INT1, EXECUTE_INT2,
+      EXECUTE_MAIN, EXECUTE_LOAD, --EXECUTE_STOREI,
       EXECUTE_IINC, EXECUTE_IDEC, EXECUTE_STORER, EXECUTE_STORE,
       EXECUTE_RETURN, EXECUTE_CALL1, EXECUTE_CALL2 );
 
@@ -88,6 +88,10 @@ architecture Behavioral of UKM910_ctrl is
    constant OPG_STOREIINC  : std_logic_vector(11 downto 0) := "101100000010";
    constant OPG_STOREIDEC  : std_logic_vector(11 downto 0) := "101100000011";
 
+   constant SEL_DATA_HIGHZ : std_logic_vector(1 downto 0) := "00";
+   constant SEL_DATA_PC    : std_logic_vector(1 downto 0) := "01";
+   constant SEL_DATA_ACC   : std_logic_vector(1 downto 0) := "10";
+
    constant SEL_A_PSW      : std_logic_vector(1 downto 0) := "00";
    constant SEL_A_IEN      : std_logic_vector(1 downto 0) := "01";
    constant SEL_A_IFLAG    : std_logic_vector(1 downto 0) := "10";
@@ -104,7 +108,7 @@ architecture Behavioral of UKM910_ctrl is
    constant SEL_ADDR_IVECT : std_logic_vector(2 downto 0) := "000";
    constant SEL_ADDR_PC    : std_logic_vector(2 downto 0) := "001";
    constant SEL_ADDR_IR    : std_logic_vector(2 downto 0) := "010";
-   constant SEL_ADDR_RESULT: std_logic_vector(2 downto 0) := "011";
+   -- constant SEL_ADDR_RESULT: std_logic_vector(2 downto 0) := "011";
    constant SEL_ADDR_SP    : std_logic_vector(2 downto 0) := "100";
    constant SEL_ADDR_PTR1  : std_logic_vector(2 downto 0) := "101";
    constant SEL_ADDR_PTR2  : std_logic_vector(2 downto 0) := "110";
@@ -127,7 +131,8 @@ state_register: process(clk, res) begin
    end if;
 end process;
 
-control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, regICURR) begin
+control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, regICURR)
+begin
    -- Default control outputs (typical value)
    ireset   <= "00000000";
    icurrent <= "00000000";
@@ -143,7 +148,8 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, reg
    enPSW    <= '0';
    enIEN    <= '0';
    enIFLAG  <= '1';
-   enRes    <= '0';
+   --enRes    <= '0';
+   selData  <= SEL_DATA_HIGHZ;
    selA     <= SEL_A_ACC;
    selB     <= (others => '-');
    selAddr  <= (others => '-');
@@ -175,7 +181,7 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, reg
             selB        <= SEL_B_SP;
             ALUfunc     <= ALU_DEC_B;
             -- perform 2 intermediate steps to push the PC and load the int vector
-            next_state  <= EXT_INT1;
+            next_state  <= EXECUTE_INT1;
          else
             oe          <= '1';
             selAddr     <= SEL_ADDR_PC;
@@ -203,22 +209,35 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, reg
             when OP_LOAD =>
                oe          <= '1';  -- apply address to memory during decode
                selAddr     <= SEL_ADDR_IR;
-               next_state  <= EXECUTE_MAIN;
+               next_state  <= EXECUTE_LOAD;
             when OP_STORE =>
                next_state  <= EXECUTE_STORE;
             when OP_GROUP1 =>
                case ( instruction(15 downto 4) ) is
                   when OPG_LOADR =>
-                     next_state  <= EXECUTE_MAIN;
+                     next_state  <= EXECUTE_LOAD;
                   when OPG_LOADI | OPG_LOADIINC =>
                      oe          <= '1';  -- apply address to memory during decode
                      selAddr     <= '1' & instruction(1 downto 0);
-                     next_state  <= EXECUTE_LOADI;
+                     next_state  <= EXECUTE_LOAD;
                   when OPG_LOADIDEC =>
+                     --next_state  <= EXECUTE_IINC;
+                     enPC        <= '0';
+                     ALUfunc     <= ALU_DEC_B;
+                     selB        <= '1' & instruction(1 downto 0);
+                     case ( instruction(1 downto 0) ) is
+                           when "00" =>   enSP   <= '1';
+                           when "01" =>   enPTR1 <= '1';
+                           when "10" =>   enPTR2 <= '1';
+                           when others => enPTR3 <= '1';  -- "11"
+                     end case;
                      next_state  <= EXECUTE_IDEC;
                   when OPG_RET | OPG_RETI =>
+                     enPC        <= '0';
+                     enSP        <= '1';
                      oe          <= '1';  -- apply address to memory during decode
-                     selAddr     <= SEL_ADDR_SP;
+                     selAddr     <= SEL_ADDR_SP;  -- use SP pre increment
+                     selB        <= SEL_B_SP;  -- increment SP
                      next_state  <= EXECUTE_RETURN;
                   when others =>
                      next_state  <= FETCH1;
@@ -228,8 +247,18 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, reg
                   when OPG_STORER =>
                      next_state  <= EXECUTE_STORER;
                   when OPG_STOREI | OPG_STOREIINC =>
-                     next_state  <= EXECUTE_STOREI;
+                     next_state  <= EXECUTE_STORE;
                   when OPG_STOREIDEC =>
+                     --next_state  <= EXECUTE_IINC;
+                     enPC        <= '0';
+                     ALUfunc     <= ALU_DEC_B;
+                     selB        <= '1' & instruction(1 downto 0);
+                     case ( instruction(1 downto 0) ) is
+                           when "00" =>   enSP   <= '1';
+                           when "01" =>   enPTR1 <= '1';
+                           when "10" =>   enPTR2 <= '1';
+                           when others => enPTR3 <= '1';  -- "11"
+                     end case;
                      next_state  <= EXECUTE_IDEC;
                   when others =>
                      next_state  <= FETCH1;
@@ -246,10 +275,6 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, reg
                end if;
                next_state  <= FETCH1;
             when OP_CALL =>
-               enPC        <= '0';
-               enSP        <= '1';
-               ALUfunc     <= ALU_DEC_B;
-               selB        <= SEL_B_SP;
                next_state  <= EXECUTE_CALL1;
             when others =>
                next_state  <= FETCH1;
@@ -263,19 +288,6 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, reg
             when OP_ADD | OP_SUB | OP_AND =>
                ALUfunc  <= instruction(15 downto 12);  -- direct relation
                selB     <= SEL_B_DATA;
-            when OP_LOAD =>
-               ALUfunc  <= ALU_EQ_B;
-               selB     <= SEL_B_DATA;
-            when OP_GROUP1 =>  -- only LOADR leads to this execute state
-               if instruction(2) = '1' then
-                  -- select PSW, IEN, IFLAG
-                  ALUfunc  <= ALU_EQ_A;
-                  selA     <= instruction(1 downto 0);
-               else
-                  -- select SP, PTR1, PTR2, PTR3
-                  ALUfunc  <= ALU_EQ_B;
-                  selB     <= '1' & instruction(1 downto 0);
-               end if;
             when OP_NOT =>
                ALUfunc  <= ALU_NOT_A;
             when OP_COMP =>
@@ -293,23 +305,48 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, reg
                nBit     <= '-';
          end case;
 
-      when EXECUTE_LOADI =>
+      when EXECUTE_LOAD =>
          enPSW       <= '1';
          enACC       <= '1';
          ALUfunc     <= ALU_EQ_B;
          selB        <= SEL_B_DATA;
+         next_state  <= FETCH1;
          if instruction(15 downto 4) = OPG_LOADIINC then
             next_state  <= EXECUTE_IINC;
-         else
-            next_state  <= FETCH1;
+         elsif instruction(15 downto 4) = OPG_LOADR then
+            if instruction(2) = '1' then
+               -- select PSW, IEN or IFLAG
+               ALUfunc  <= ALU_EQ_A;
+               selA     <= instruction(1 downto 0);
+            else
+               -- select SP, PTR1, PTR2 or PTR3
+               selB     <= '1' & instruction(1 downto 0);
+            end if;
          end if;
 
-      when EXECUTE_STOREI =>
-         we          <= '1';
-         enRes       <= '1';
-         ALUfunc     <= ALU_EQ_A;
+      when EXECUTE_IDEC =>
+         -- Increment the program counter and apply pointer to addressbus
+         enPC        <= '1';
          selAddr     <= '1' & instruction(1 downto 0);
-         next_state  <= FETCH1;
+         ALUfunc     <= ALU_INC_B;
+         selB        <= SEL_B_PC;
+         if ( instruction(15 downto 4) = OPG_LOADIDEC ) then
+            oe          <= '1';
+            next_state  <= EXECUTE_LOAD;
+         else  -- OPG_STOREIDEC
+            next_state  <= EXECUTE_STORE;
+         end if;
+
+      when EXECUTE_STORE =>
+         we          <= '1';
+         --enRes       <= '1';
+         selData     <= SEL_DATA_ACC;
+         ALUfunc     <= ALU_EQ_A;
+         if instruction(15 downto 12) = OP_STORE then
+            selAddr     <= SEL_ADDR_IR;
+         else
+            selAddr     <= '1' & instruction(1 downto 0);
+         end if;
          if instruction(15 downto 4) = OPG_STOREIINC then
             next_state  <= EXECUTE_IINC;
          else
@@ -323,29 +360,19 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, reg
             when "10" =>   enPTR2 <= '1';
             when others => enPTR3 <= '1';  -- "11"
          end case;
-         ALUfunc     <= ALU_INC_B;
-         selB        <= '1' & instruction(1 downto 0);
-         next_state  <= FETCH1;
-
-      when EXECUTE_IDEC =>
-         case ( instruction(1 downto 0) ) is
-            when "00" =>   enSP   <= '1';
-            when "01" =>   enPTR1 <= '1';
-            when "10" =>   enPTR2 <= '1';
-            when others => enPTR3 <= '1';  -- "11"
-         end case;
-         ALUfunc     <= ALU_DEC_B;
-         selB        <= '1' & instruction(1 downto 0);
-         next_state  <= FETCH1;
+         selB     <= '1' & instruction(1 downto 0);
          case ( instruction(15 downto 4) ) is
-            when OPG_LOADIDEC =>
-               oe          <= '1';
-               selAddr     <= SEL_ADDR_RESULT;
-               next_state  <= EXECUTE_LOADI;
+            -- when OPG_LOADIDEC =>
+            --    oe          <= '1';
+            --    selAddr     <= SEL_ADDR_RESULT;
+            --    ALUfunc     <= ALU_DEC_B;
+            --    next_state  <= EXECUTE_LOAD;
             when OPG_STOREIDEC =>
-               next_state  <= EXECUTE_STOREI;
+               ALUfunc     <= ALU_DEC_B;
+               next_state  <= EXECUTE_STORE;
             when others =>
-               null;
+               ALUfunc     <= ALU_INC_B;
+               next_state  <= FETCH1;
          end case;
 
       when EXECUTE_STORER =>
@@ -369,18 +396,11 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, reg
          end case;
          next_state  <= FETCH1;
 
-      when EXECUTE_STORE =>
-         we          <= '1';
-         enRes       <= '1';
-         ALUfunc     <= ALU_EQ_A;
-         selAddr     <= SEL_ADDR_IR;
-         next_state  <= FETCH1;
-
       when EXECUTE_RETURN =>
          enPC        <= '1';
          ALUfunc     <= ALU_EQ_B;
          selB        <= SEL_B_DATA;
-         next_state  <= EXECUTE_IINC;  -- increment SP
+         next_state  <= FETCH1;  -- continue
          if instruction(15 downto 4) = OPG_RETI then
             selIEN      <= SEL_IEN_CTRL;
             gie         <= '1';  -- global interrup enable
@@ -389,27 +409,30 @@ control_logic: process(state, instruction, zero_flag, neg_flag, ien, iflags, reg
          end if;
 
       when EXECUTE_CALL1 =>
-         we          <= '1';
-         enRes       <= '1';
-         selAddr     <= SEL_ADDR_SP;
-         selB        <= SEL_B_PC;
-         ALUfunc     <= ALU_INC_B;
+         enSP        <= '1';
+         ALUfunc     <= ALU_DEC_B;
+         selB        <= SEL_B_SP;
          next_state  <= EXECUTE_CALL2;
       when EXECUTE_CALL2 =>
+         we          <= '1';
+         --enRes       <= '1';
+         selData     <= SEL_DATA_PC;
+         selAddr     <= SEL_ADDR_SP;
          enPC        <= '1';
          selB        <= SEL_B_IR;
          ALUfunc     <= ALU_EQ_B;
          next_state  <= FETCH1;
 
-      when EXT_INT1 =>
+      when EXECUTE_INT1 =>
          -- decrement SP address interrupt vector
          we          <= '1';
-         enRes       <= '1';
+         --enRes       <= '1';
+         selData     <= SEL_DATA_PC;
          selAddr     <= SEL_ADDR_SP;
-         selB        <= SEL_B_PC;
-         ALUfunc     <= ALU_EQ_B;
-         next_state  <= EXT_INT2;
-      when EXT_INT2 =>
+         --selB        <= SEL_B_PC;
+         --ALUfunc     <= ALU_EQ_B;
+         next_state  <= EXECUTE_INT2;
+      when EXECUTE_INT2 =>
          -- address interrupt vector and reset the interrupt flag
          if ( (ien(0) and iflags(0)) = '1' ) then
             icurrent <= "00000001";
