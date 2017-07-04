@@ -38,7 +38,7 @@ entity PS2_Controller is
            clk : in  STD_LOGIC;
            reset : in  STD_LOGIC;
            PS2clk : in  STD_LOGIC;
-           PS2data : in  STD_LOGIC);
+			  PS2data : in  STD_LOGIC);
 end PS2_Controller;
 
 architecture Behavioral of PS2_Controller is
@@ -267,17 +267,16 @@ begin
 					
 				--End of the Inputdatas
 				
-				--Check the Parity-Bit an the Data converter
+				--Check the Parity-Bit and the Data converter
 				when CHECK_PARITY =>
-					--LED <= X"15";
 					if parity_sig = check_parity_sig then
 						state <= F0_DETECT;
 					else 
 						state <= START;
 					end if;
-				--Check if the shift-key is pressed
+					--Check if the shift-key is pressed
 					if data_sig = X"12" or data_sig = X"59" then
-							shift_sig <= '1';
+						shift_sig <= '1';
 					end if;
 					
 				when F0_DETECT =>
@@ -291,22 +290,21 @@ begin
 						state <= START;
 					end if;
 					
-				--If shift is pressed, it will select the special keys	
 				when BRACKET_DETECT =>
 				-- 8 and shift is equal to bracket_left
-					if shift_sig = '1' and data_convert_sig = X"08" then
+					if shift_sig = '1' and data_convert_sig = conv_8 then
 						data_output <= conv_bracket_left;
 						state <= CHECK_BYTE;
 				-- 9 and shift is equal to bracket_right
-					elsif  shift_sig = '1' and data_convert_sig = X"09" then
+					elsif  shift_sig = '1' and data_convert_sig = conv_9 then
 						data_output <= conv_bracket_right;
 						state <= CHECK_BYTE;
 				-- 0 with shift is equal to enter
-					elsif  shift_sig = '1' and data_sig = key_0 then
+					elsif  shift_sig = '1' and data_sig = X"45" then
 						data_output <= conv_enter;
 						state <= CHECK_BYTE;
 				-- + with shift is equal to mul
-					elsif  shift_sig = '1' and data_sig = key_add2 then
+					elsif  shift_sig = '1' and data_sig = X"5B" then
 						data_output <= conv_mul;
 						state <= CHECK_BYTE;
 				-- . with shift is equal to div
@@ -314,7 +312,7 @@ begin
 						data_output <= conv_div;
 						state <= CHECK_BYTE;
 				-- 7 with shift is equal to div
-					elsif  shift_sig = '1' and data_sig = key_7 then
+					elsif  shift_sig = '1' and data_sig = X"3D" then
 						data_output <= conv_div;
 						state <= CHECK_BYTE;
 				--shift key is released
@@ -339,8 +337,8 @@ begin
 					if data_convert_sig = "11111111" then
 						state <= START;
 					else
-					interrupt <= '1';
-					state <= DATA_ON_BUS;
+						interrupt <= '1';
+						state <= DATA_ON_BUS;
 					end if;
 					
 				when DATA_ON_BUS =>
@@ -365,9 +363,9 @@ begin
 					state <= RST;
 				end case;
 		end if;
-	end process;
+	end process;	
 	
-	--convert parallel the Input to the ASCII output
+	--convert parallel the Input to the ASCII output	
 	process (clk, reset, OE, PS2clk, PS2data)
 	begin
 		case data_sig is
@@ -397,7 +395,7 @@ begin
 				data_convert_sig <= conv_2;				
 			when key_3_KP => 
 				data_convert_sig <= conv_3;
-			when key_4_KP => 
+			when key_4_KP =>
 				data_convert_sig <= conv_4;
 			when key_5_KP => 
 				data_convert_sig <= conv_5;
@@ -442,8 +440,5 @@ begin
            shift_reg_sig(0) <= shift_reg_sig(1);
 		end if;
 	end process;
-							
-
-
 end Behavioral;
 
