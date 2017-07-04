@@ -14,39 +14,32 @@ use ieee.numeric_std.all;
 entity edge_detect is
    generic (N : positive := 8);
    port (
+      clk            : in  std_logic;
       input, reset   : in  std_logic_vector(N-1 downto 0);
       output         : out std_logic_vector(N-1 downto 0) );
 end edge_detect;
 
 architecture Behavioral of edge_detect is
-   -- constant ZERO  : std_logic_vector(N-1 downto 0) := (others => '0');
-   signal Q    : std_logic_vector(N-1 downto 0);
-   signal notQ : std_logic_vector(N-1 downto 0);
+   signal Q, notQ  : std_logic_vector(N-1 downto 0);
+   signal buff_reg : std_logic_vector(N-1 downto 0);
 
 begin
-process(input, reset, Q, notQ)
-begin
+   nor_latch: process(input, reset, Q, notQ)
+   begin
+      -- detect and hold asynchronous input signals with NOR latch
+      Q      <= input nor notQ;
+      notQ   <= reset nor Q;
+   end process nor_latch;
 
-   Q      <= input nor notQ;
-   notQ   <= reset nor Q;
+   sync_ff: process(clk)
+   begin
+      -- synchronize the asynchronous input signal with an FF
+      if rising_edge(clk) then
+         buff_reg <= notQ;
+      end if;
+   end process sync_ff;
 
-end process;
-
-
---GEN_edge_detect:
---   for i in 0 to N-1 generate
---		process(input(i), reset(i))
---		begin
---			if input(i) = '1' then
---				Q(i)    <= '1';
---				notQ(i) <= '0';
---			elsif reset(i) =  '1' then
---				Q(i)    <= '0';
---				notQ(i) <= '1';
---			end if;
---		end process;
---   end generate GEN_edge_detect;
-
- output <= notQ;
+   --output <= notQ;
+   output <= (not reset) and buff_reg;
 
 end Behavioral;
