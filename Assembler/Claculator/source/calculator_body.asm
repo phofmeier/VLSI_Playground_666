@@ -1027,13 +1027,13 @@ dividePos: .word 0x000
 outpchar:   .word 0x000
 
 # bracket pointer frame base
-brFrameBaseAddr: getaddr brFrameBase
-brFrameBase: .word 0x000
+brFrameBaseAddr: 	getaddr brFrameBase
+brFrameBase: 		.word 0x000
 
 # variables VGA
-count:			.word	0x000
+count:				.word	0x000
 screenLineAddr:		.word	0x000
-screenColum:	.word	0x000
+screenColum:		.word	0x000
 screenSecondChar:	.word	0x0000
 
 firstChar:			.word	0x0000

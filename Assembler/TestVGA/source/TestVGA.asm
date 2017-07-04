@@ -45,6 +45,7 @@ int7:     reti
 main:   load  	spinit   # init-value for stack pointer
         store 	$sp      # store value in stack pointer register
 		load	const0
+		store 	$ien
 		store	outputCharTest # initilize variable with 0
 		load	vgaAddr # store first VGA Adress in the third pointer
 		store	$ptr3
@@ -80,7 +81,7 @@ const1:   		.word 0x0001  # constant one
 constF:			.word 0x000F # constant 0xF
 maskRotEvent:   .word 0xE000  # mask either rotary knob event
 
-spinit:   		.word 0x06FF  # stack pointer init value
+spinit:   		.word 0x0600  # stack pointer init value
 #ieinit:   		.word 0x0102  # interrupt enable 
 
 #.set	keyboardAddr,	0x0FFF << 1 # Adress for the Keyboard
