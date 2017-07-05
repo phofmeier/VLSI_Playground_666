@@ -85,7 +85,7 @@ spinit:   		.word 0x0600  # stack pointer init value
 #ieinit:   		.word 0x0102  # interrupt enable 
 
 #.set	keyboardAddr,	0x0FFF << 1 # Adress for the Keyboard
-.set	vgaAddr,		0x0700 << 1 # First Adress for the VGA controller 
+.set	vgaAddr,		0x0800 << 1 # First Adress for the VGA controller 
 .set	debugAddr,		0x0FFF << 1 # Adresse for debug Module
 
 #constNrOfVgaMemory:	.word	0x0640 # Nr. of VGA Memory adresses
