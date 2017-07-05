@@ -60,8 +60,9 @@ mloop:  call 	wait_for_knop  # wait until Knop is pulled
 		load 	outputCharTest # load the characters to be outputed
 		add		const1         # increment by 1
 		store	outputCharTest
-		store 	($ptr3)inc	   # write Character to VGA
 		store	debugAddr	   # write Character to LED's
+        add     const48        # add ascii offset to start with '0'
+		store 	($ptr3)inc	   # write Character to VGA
         jump  	mloop    # continue in loop
 
 
@@ -79,6 +80,7 @@ wait_for_knop: # only return when the knop is used
 const0:   		.word 0x0000  # constant zero
 const1:   		.word 0x0001  # constant one
 constF:			.word 0x000F # constant 0xF
+const48:		.word 0x0030  # constant 0x30  '0'
 maskRotEvent:   .word 0xE000  # mask either rotary knob event
 
 spinit:   		.word 0x0600  # stack pointer init value
