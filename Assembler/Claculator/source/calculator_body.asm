@@ -940,7 +940,7 @@ const1k:	.word	0x03E8 # constant 1000
 const100:	.word	0x0064 # constant 100
 const10:	.word	0x000A # constant 10
 
-spinit:   .word 0x06FF  # stack pointer init value
+spinit:   .word 0x07FF  # stack pointer init value
 ieinit:   .word 0x0102  # interrupt enable 
 
 maskOV:    .word 0x0008 # mask for overflow bit
@@ -983,11 +983,12 @@ txtWelcomeAddr: getaddr txtWelcome
 
 
 .set    keyboardAddr,  0x0FFF << 1 # Adress for the Keyboard
-.set	vgaAddr,		0x700 << 1 # First Adress for the VGA controller 
+#.set	vgaAddr,		0x0800 << 1 # First Adress for the VGA controller 
+vgaAddr:	.word	0x0640 # First Adress for the VGA controller
 
 constNrOfVgaMemory:	.word	0x0640 # Nr. of VGA Memory adresses
 constLineOffset: 	.word	0x0028 # Nr of Characters in One row
-constLastAddr:		.word	0x0D40 # Last Addr
+constLastAddr:		.word	0x0E40 # Last Addr
 constMaxScreenColum: .word	0x004F	# Maximum of char per colum
 
 
