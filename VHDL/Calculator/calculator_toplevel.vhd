@@ -38,7 +38,7 @@ architecture Behavioral of calculator_toplevel is
    signal oe_ps2     : std_logic;
    signal addressbus : std_logic_vector (11 downto 0) := (others => '0');
    signal databus    : std_logic_vector (15 downto 0) := (others => '0');
-   signal interrupt  : std_logic_vector (7 downto 0)  := (others => '0');
+   signal interrupt  : std_logic_vector (7 downto 0);
 
    signal sel_mem    : std_logic;
    signal sel_vga    : std_logic;
@@ -112,5 +112,9 @@ begin
    oe_mem <= sel_mem and oe;
    we_vga <= sel_vga and we;
    oe_ps2 <= sel_ps2 and oe;
+   
+   -- Connect all unused interrupt lines to const '0'
+   interrupt(7 downto 2) <= "000000";
+   interrupt(0) <= '0';
 
 end;
