@@ -11,6 +11,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_misc.all;
 use ieee.numeric_std.all;
 
+Library UNISIM;
+use UNISIM.vcomponents.all;
+
 entity edge_detect is
    generic (N : positive := 8);
    port (
@@ -24,12 +27,18 @@ architecture Behavioral of edge_detect is
    signal buff_reg : std_logic_vector(N-1 downto 0);
 
 begin
-   nor_latch: process(input, reset, Q, notQ)
-   begin
-      -- detect and hold asynchronous input signals with NOR latch
-      Q      <= input nor notQ;
-      notQ   <= reset nor Q;
-   end process nor_latch;
+   latch: for I in 0 to N-1 generate
+      LDCE_inst: LDCE
+      generic map (
+         INIT => '1')      -- Initial value of latch
+      port map (
+         Q => Q(i),        -- Data output
+         CLR => input(i),  -- Asynchronous clear/reset input
+         D => '1',         -- Data input
+         G => '1',         -- Gate input
+         GE => reset(i)    -- Gate enable input
+      );
+   end generate;
 
    sync_ff: process(clk)
    begin
@@ -39,7 +48,7 @@ begin
       end if;
    end process sync_ff;
 
-   --output <= notQ;
+   notQ <= not Q;
    output <= (not reset) and buff_reg;
 
 end Behavioral;
