@@ -1,0 +1,8 @@
+INTSTYLE=ise
+INFILE=C:\NICKI\Studium\Semester 8\VLSI\Project_Group3\Source\VHDL\Calculator\ise_project\calculator_toplevel.ncd
+OUTFILE=C:\NICKI\Studium\Semester 8\VLSI\Project_Group3\Source\VHDL\Calculator\ise_project\calculator_toplevel.bit
+FAMILY=Spartan3E
+PART=xc3s500e-4fg320
+WORKINGDIR=C:\NICKI\Studium\Semester 8\VLSI\Project_Group3\Source\VHDL\Calculator\ise_project
+LICENSE=WebPack
+USER_INFO=211350036_0_0_715
