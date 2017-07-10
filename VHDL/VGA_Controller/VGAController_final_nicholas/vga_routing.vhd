@@ -29,7 +29,7 @@ end vga_routing;
 
 architecture Behavioral of vga_routing is
    signal pixel_clk, pixel_en, pixel_top, pixel_left: std_logic;
-   signal read_en_sig : std_logic;
+   signal read_en_sig, buffer_en : std_logic;
    signal byte_select : std_logic;
    signal row_select : std_logic_vector(3 downto 0);
    signal bit_mask  : std_logic_vector(7 downto 0);
@@ -37,7 +37,6 @@ architecture Behavioral of vga_routing is
    signal char_reg  : std_logic_vector(15 downto 0);
    signal char_data : std_logic_vector(7 downto 0);
    signal pixel_row : std_logic_vector(7 downto 0);
-   signal pixel_row_addr : std_logic_vector(11 downto 0) := x"000";
 
 begin
    timing_unit: entity vga_timing
@@ -79,9 +78,9 @@ begin
          if ( or_reduce(pixel_row and bit_mask) = '1' ) then
             red   <= '1';
             green <= '0';
-            blue  <= '0';
+            blue  <= '1';
          else
-            red   <= '0';
+            red   <= '1';
             green <= '1';
             blue  <= '1';
          end if;
@@ -95,8 +94,13 @@ begin
    buffer_reg: process(clk)
    begin
       if rising_edge(clk) then
-         if ( read_en_sig = '1' and pixel_clk = '0' ) then
+      --if rising_edge(pixel_clk) then
+         if ( buffer_en = '1' ) then  -- and pixel_clk = '0'
             char_reg <= mem_data;
+            buffer_en <= '0';
+         else
+            -- Delay the transfer to the buffer by one cycle
+            buffer_en <= read_en_sig;
          end if;
       end if;
    end process;

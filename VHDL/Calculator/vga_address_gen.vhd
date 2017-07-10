@@ -17,7 +17,7 @@ entity vga_address_gen is
           byte_select   : out std_logic;  -- '1' => for high byte
           row_select    : out std_logic_vector(3 downto 0);
           bit_mask      : out std_logic_vector(7 downto 0);
-          --clk           : in std_logic;
+          clk           : in std_logic;
           pixel_clk     : in std_logic;
           pixel_en      : in std_logic;
           pixel_top     : in std_logic;
@@ -89,39 +89,37 @@ begin
       end case;
    end process address_calc;
 
-   reg_update: process(pixel_clk, pixel_top, pixel_left, row, addr_line)
+   reg_update: process(clk, pixel_clk, pixel_top, pixel_left, row, addr_line)
    begin
-      --if rising_edge(clk) then
-         --if pixel_clk = '0' then
-      if rising_edge(pixel_clk) then
-         y <= y_n;
-         x <= x_n;
+      if rising_edge(clk) then
+         if pixel_clk = '0' then
+         --if rising_edge(pixel_clk) then
+            y <= y_n;
+            x <= x_n;
 
-         if pixel_top = '1' then
-            y <= x"00";
-         end if;
-
-         if pixel_left = '1' then
-            x <= x"0";
-         end if;
-         --end if;
-      end if;
-
-      if rising_edge(pixel_clk) then
-         if pixel_top = '1' then
-            row <= x"0";
-            addr <= (others => '0');
-            addr_line <= (others => '0');
-         elsif pixel_left = '1' then
-            if row = x"B" then
-               row <= x"0";
-               addr_line <= addr_n;
-            else
-               row <= row + 1;
-               addr <= addr_line;
+            if pixel_top = '1' then
+               y <= x"00";
             end if;
-         else
-            addr <= addr_n;
+
+            if pixel_left = '1' then
+               x <= x"0";
+            end if;
+
+            if pixel_top = '1' then
+               row <= x"0";
+               addr <= (others => '0');
+               addr_line <= (others => '0');
+            elsif pixel_left = '1' then
+               if row = x"B" then
+                  row <= x"0";
+                  addr_line <= addr_n;
+               else
+                  row <= row + 1;
+                  addr <= addr_line;
+               end if;
+            else
+               addr <= addr_n;
+            end if;
          end if;
       end if;
    end process reg_update;

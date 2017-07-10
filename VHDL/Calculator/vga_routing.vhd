@@ -58,7 +58,7 @@ begin
       byte_select => byte_select,
       row_select  => row_select,
       bit_mask    => bit_mask,
-      --clk         => clk,
+      clk         => clk,
       pixel_clk   => pixel_clk,
       pixel_en    => pixel_en,
       pixel_top   => pixel_top,  -- comes one cycle before pixel_en
@@ -78,9 +78,9 @@ begin
          if ( or_reduce(pixel_row and bit_mask) = '1' ) then
             red   <= '1';
             green <= '0';
-            blue  <= '0';
+            blue  <= '1';
          else
-            red   <= '0';
+            red   <= '1';
             green <= '1';
             blue  <= '1';
          end if;
