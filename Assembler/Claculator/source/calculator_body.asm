@@ -597,6 +597,21 @@ outputInitScreen:
           call  outputNewLine     
           call  outputLine        # and another line, start at beginning of new line
           call  outputNewLine
+		  load char0
+		  store outpchar
+		  call outputChar
+		  load char1
+		  store outpchar
+		  call outputChar
+		  load char2
+		  store outpchar
+		  call outputChar
+		  load char3
+		  store outpchar
+		  call outputChar
+		  load char4
+		  store outpchar
+		  call outputChar
           ret
 
 
@@ -751,7 +766,7 @@ outputText:
 
           .type outputLine, @function
 outputLine:
-          call	outputNewLine		# Start with new row
+          
 		  
 		  load	constLineOffset		# Number of loops
 		  store	count
