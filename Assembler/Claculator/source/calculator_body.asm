@@ -643,8 +643,9 @@ outputClrScreen:
 		  store	screenLineAddr
 		  store	$ptr3
 		  load 	const0
-		  store	screenSecondChar  # begin with first char
 		  store	screenColum
+		  load const1
+		  store	screenFirstChar  # begin with first char
 		  
           ret   
 
@@ -658,9 +659,10 @@ outputClrScreen:
 
           .type outputNewLine, @function
 outputNewLine:
+			load const1
+			store	screenFirstChar # begin with first char
 			load 	const0
 			store	screenColum
-			store	screenSecondChar # begin with first char
 			load	screenLineAddr
 			add		constLineOffset
 			store	screenLineAddr
@@ -687,7 +689,7 @@ rowOverflow:						# set first row
           .type outputChar, @function
 outputChar:
 						
-			load	screenSecondChar
+			load	screenFirstChar
 			bz		printSecondChar		# check if first char or second char should be printed
 			load	outpchar
 			add 	constFF00			# set first 8 bit to 1
@@ -703,7 +705,7 @@ outputChar:
 			and		constFirstCharMask	# set second char to 0x20
 			store	($ptr3)				# set char to Memory
 			load 	const0
-			store	screenSecondChar	# next Char is a second char
+			store	screenFirstChar	# next Char is a second char
 			add		screenColum			# keep track of screenColum
 			store	screenColum
 			load	constMaxScreenColum
@@ -718,7 +720,7 @@ printSecondChar:
 			and		outpchar
 			store	($ptr3)inc
 			load	const1
-			store	screenSecondChar	# next char is first char
+			store	screenFirstChar	# next char is first char
 			load	const1
 			add		screenColum			# keep track of screen colum
 			store	screenColum
@@ -1051,7 +1053,7 @@ brFrameBase: 		.word 0x000
 count:				.word	0x000
 screenLineAddr:		.word	0x000
 screenColum:		.word	0x000
-screenSecondChar:	.word	0x0000
+screenFirstChar:	.word	0x0001
 
 firstChar:			.word	0x0000
 
