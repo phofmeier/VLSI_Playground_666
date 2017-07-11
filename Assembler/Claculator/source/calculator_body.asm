@@ -686,18 +686,7 @@ rowOverflow:						# set first row
  
           .type outputChar, @function
 outputChar:
-			load	outpchar
-			rotr						# rotate 8 times right to have the cahr on the first 8 bit
-			rotr
-			rotr
-			rotr
-			rotr
-			rotr
-			rotr
-			rotr
-			store	($ptr3)inc
-			ret
-			
+						
 			load	screenSecondChar
 			bz		printSecondChar		# check if first char or second char should be printed
 			load	outpchar
@@ -713,7 +702,7 @@ outputChar:
 			store	firstChar			# store first char for print second
 			and		constFirstCharMask	# set second char to 0x20
 			store	($ptr3)				# set char to Memory
-			load 	const1
+			load 	const0
 			store	screenSecondChar	# next Char is a second char
 			add		screenColum			# keep track of screenColum
 			store	screenColum
@@ -728,7 +717,7 @@ printSecondChar:
 			load	firstChar
 			and		outpchar
 			store	($ptr3)inc
-			load	const0
+			load	const1
 			store	screenSecondChar	# next char is first char
 			load	const1
 			add		screenColum			# keep track of screen colum
