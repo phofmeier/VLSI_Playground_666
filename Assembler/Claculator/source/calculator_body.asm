@@ -687,8 +687,17 @@ rowOverflow:						# set first row
           .type outputChar, @function
 outputChar:
 			load	outpchar
+			rotr						# rotate 8 times right to have the cahr on the first 8 bit
+			rotr
+			rotr
+			rotr
+			rotr
+			rotr
+			rotr
+			rotr
 			store	($ptr3)inc
 			ret
+			
 			load	screenSecondChar
 			bz		printSecondChar		# check if first char or second char should be printed
 			load	outpchar
@@ -740,7 +749,7 @@ printSecondChar:
           .type outputText, @function
 outputText: 
 			load	($ptr2)
-			shr							# rotate 8 bit
+			shr							# shift 8 bit
 			shr
 			shr
 			shr
