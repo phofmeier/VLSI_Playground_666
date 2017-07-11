@@ -597,21 +597,6 @@ outputInitScreen:
           call  outputNewLine     
           call  outputLine        # and another line, start at beginning of new line
           call  outputNewLine
-		  load char0
-		  store outpchar
-		  call outputChar
-		  load char1
-		  store outpchar
-		  call outputChar
-		  load char2
-		  store outpchar
-		  call outputChar
-		  load char3
-		  store outpchar
-		  call outputChar
-		  load char4
-		  store outpchar
-		  call outputChar
           ret
 
 
@@ -868,7 +853,7 @@ outputNumber:
 		load	OutputNr_3
 	OutputFourthElement:	
 		call	OutputNumberPrint
-		load	OutputNr_1
+		load	OutputNr_4
 	OutputFifthElement:	
 		call	OutputNumberPrint
 		
