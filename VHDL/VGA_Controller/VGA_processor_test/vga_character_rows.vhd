@@ -22,10 +22,15 @@ entity vga_character_rows is
 end vga_character_rows;
 
 architecture Behavioral of vga_character_rows is
+   signal address_internal : integer range 0 to 255*12;
 
 begin
-
-   pixel_row <= fontROM(conv_integer(char_row & char_ascii));
+   process(address_internal)
+   begin
+      pixel_row <= fontROM(address_internal);
+   end process;
+   
+   address_internal <= conv_integer(char_row & char_ascii);
 
 end Behavioral;
 

@@ -1,0 +1,8 @@
+INTSTYLE=ise
+INFILE=C:\Users\feixn\Desktop\VLSI\Project_Group3\VGA-Controller\VGA_processor_test\ise_project\processor_toplevel.ncd
+OUTFILE=C:\Users\feixn\Desktop\VLSI\Project_Group3\VGA-Controller\VGA_processor_test\ise_project\processor_toplevel.bit
+FAMILY=Spartan3E
+PART=xc3s500e-4fg320
+WORKINGDIR=C:\Users\feixn\Desktop\VLSI\Project_Group3\VGA-Controller\VGA_processor_test\ise_project
+LICENSE=ISE
+USER_INFO=176561207_177366434_210619371_861

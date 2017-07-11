@@ -37,14 +37,16 @@ end vga_memory;
 architecture Simulation of vga_memory is
    type saveArray is array (0 to (40 * 40)) of std_logic_vector(15 downto 0);
    signal data : saveArray := (others => (others => '0'));
+   signal addr_rd_int : integer range 0 to 1600;
+   signal addr_wr_int : integer range 0 to 1600;
 begin
 
-mem_ctrl: process(clk)
-   variable init      : integer := 0;
-   file inputfile     : text open read_mode is "../vga_memory.txt";
-   variable inputline : line;
-   variable inputval  : std_logic_vector(15 downto 0);
-   variable address   : integer := 0;
+   mem_ctrl: process(clk, addr_rd_int, addr_wr_int)
+      variable init      : integer := 0;
+      file inputfile     : text open read_mode is "../vga_memory.txt";
+      variable inputline : line;
+      variable inputval  : std_logic_vector(15 downto 0);
+      variable address   : integer := 0;
 
    begin
       if init = 0 then
@@ -57,18 +59,23 @@ mem_ctrl: process(clk)
          init := 1;
       elsif rising_edge(clk) then
          if we = '1' then
-            data(conv_integer(unsigned(addr_wr))) <= data_in;
+            data(addr_wr_int) <= data_in;
          end if;
          if oe = '1' then
-            data_out <= data(conv_integer(unsigned(addr_rd)));
+            data_out <= data(addr_rd_int);
          end if;
       end if;
    end process mem_ctrl;
+   
+   addr_rd_int <= conv_integer(unsigned(addr_rd));
+   addr_wr_int <= conv_integer(unsigned(addr_wr));
 end Simulation;
 
 
 architecture Synthesis of vga_memory is
    type saveArray is array (0 to (40 * 40)) of std_logic_vector(15 downto 0);
+   signal addr_rd_int : integer range 0 to 1600;
+   signal addr_wr_int : integer range 0 to 1600;
    signal data : saveArray := (
       x"2b20", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020",
       x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"2020", x"202b",
@@ -154,17 +161,20 @@ architecture Synthesis of vga_memory is
 
 begin
 
-mem_ctrl: process(clk)
+   mem_ctrl: process(clk, addr_rd_int, addr_wr_int)
    begin
       if rising_edge(clk) then
          if we = '1' then
-            data(conv_integer(unsigned(addr_wr))) <= data_in;
+            data(addr_wr_int) <= data_in;
          end if;
          if oe = '1' then
-            data_out <= data(conv_integer(unsigned(addr_rd)));
+            data_out <= data(addr_rd_int);
          end if;
       end if;
    end process mem_ctrl;
+   
+   addr_rd_int <= conv_integer(unsigned(addr_rd));
+   addr_wr_int <= conv_integer(unsigned(addr_wr));
 
 end Synthesis;
 

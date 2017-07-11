@@ -76,13 +76,13 @@ begin
    begin
       if ( pixel_en = '1' ) then
          if ( or_reduce(pixel_row and bit_mask) = '1' ) then
-            red   <= '1';
-            green <= '0';
+            red   <= '0';
+            green <= '1';
             blue  <= '1';
          else
             red   <= '1';
-            green <= '1';
-            blue  <= '1';
+            green <= '0';
+            blue  <= '0';
          end if;
       else
          red   <= '0';

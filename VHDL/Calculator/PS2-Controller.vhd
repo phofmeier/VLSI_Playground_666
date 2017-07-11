@@ -44,7 +44,7 @@ end PS2_Controller;
 architecture Behavioral of PS2_Controller is
 
 --definition of the states for the state machine
-type STATES is ( RST, START,
+type STATES is ( START,
                  START_BIT,
                  WAIT_BIT_0,
                  BIT_1, WAIT_BIT_1,
@@ -139,8 +139,6 @@ begin
          oe_int <= '0';
 
          case state is
-            when RST =>
-               state <= START;
             when START =>
                if shift_reg_sig(6) = '0' and shift_reg_sig(0) = '1' then
                   data_sig <= "00000000";
@@ -363,7 +361,8 @@ begin
                end if;
 
             when others =>
-               state <= RST;
+               --state <= RST;
+               state <= START;
             end case;
       end if;
    end process;

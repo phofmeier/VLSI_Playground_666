@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <report-views version="2.0" >
  <header>
-  <DateModified>2017-06-27T14:36:23</DateModified>
+  <DateModified>2017-07-11T12:15:56</DateModified>
   <ModuleName>toplevel_vga</ModuleName>
   <SummaryTimeStamp>2017-06-27T10:42:09</SummaryTimeStamp>
-  <SavedFilePath>C:/NICKI/Studium/Semester 8/VLSI/Project_Group3/VGA-Controller/VGAController_final_nicholas/ise_project/iseconfig/toplevel_vga.xreport</SavedFilePath>
-  <ImplementationReportsDirectory>C:/NICKI/Studium/Semester 8/VLSI/Project_Group3/VGA-Controller/VGAController_final_nicholas/ise_project\</ImplementationReportsDirectory>
+  <SavedFilePath>C:/Users/feixn/Desktop/VLSI/Project_Group3/VGA-Controller/VGAController_final_nicholas/ise_project/iseconfig/toplevel_vga.xreport</SavedFilePath>
+  <ImplementationReportsDirectory>C:/Users/feixn/Desktop/VLSI/Project_Group3/VGA-Controller/VGAController_final_nicholas/ise_project\</ImplementationReportsDirectory>
   <DateInitialized>2017-06-27T10:30:16</DateInitialized>
   <EnableMessageFiltering>false</EnableMessageFiltering>
  </header>
