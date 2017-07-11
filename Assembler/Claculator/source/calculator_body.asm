@@ -686,6 +686,9 @@ rowOverflow:						# set first row
  
           .type outputChar, @function
 outputChar:
+			load	outpchar
+			store	($ptr3)inc
+			ret
 			load	screenSecondChar
 			bz		printSecondChar		# check if first char or second char should be printed
 			load	outpchar
