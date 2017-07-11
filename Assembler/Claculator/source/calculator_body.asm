@@ -984,7 +984,7 @@ txtWelcomeAddr: getaddr txtWelcome
 
 .set    keyboardAddr,  0x0FFF << 1 # Adress for the Keyboard
 #.set	vgaAddr,		0x0800 << 1 # First Adress for the VGA controller 
-vgaAddr:	.word	0x0640 # First Adress for the VGA controller
+vgaAddr:	.word	0x0800 # First Adress for the VGA controller
 
 constNrOfVgaMemory:	.word	0x0640 # Nr. of VGA Memory adresses
 constLineOffset: 	.word	0x0028 # Nr of Characters in One row
