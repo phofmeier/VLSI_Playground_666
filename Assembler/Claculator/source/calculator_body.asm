@@ -659,7 +659,7 @@ outputClrScreen:
 
           .type outputNewLine, @function
 outputNewLine:
-			load const1
+			load 	const1
 			store	screenFirstChar # begin with first char
 			load 	const0
 			store	screenColum
@@ -692,7 +692,7 @@ outputChar:
 			load	screenFirstChar
 			bz		printSecondChar		# check if first char or second char should be printed
 			load	outpchar
-			add 	constFF00			# set first 8 bit to 1
+			#add 	constFF00			# set first 8 bit to 1
 			rotr						# rotate 8 times right to have the cahr on the first 8 bit
 			rotr
 			rotr
@@ -716,8 +716,10 @@ ScreenLineOverflow:
 			call	outputNewLine		# Start in a new Line
 		  ret
 printSecondChar:
-			load	firstChar
-			and		outpchar
+			#load	firstChar
+			#and		outpchar
+			load	outpchar
+			add		firstChar
 			store	($ptr3)inc
 			load	const1
 			store	screenFirstChar	# next char is first char
