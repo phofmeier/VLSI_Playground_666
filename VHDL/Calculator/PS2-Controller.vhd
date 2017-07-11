@@ -45,7 +45,7 @@ architecture Behavioral of PS2_Controller is
 
 --definition of the states for the state machine
 type STATES is ( RST, START,
-                 START_BIT, WAIT_START_BIT,
+                 START_BIT,
                  BIT_0, WAIT_BIT_0,
                  BIT_1, WAIT_BIT_1,
                  BIT_2, WAIT_BIT_2,
