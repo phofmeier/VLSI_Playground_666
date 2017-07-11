@@ -1,0 +1,36 @@
+Release 14.7 - ngc2edif P.20131013 (nt64)
+Copyright (c) 1995-2013 Xilinx, Inc.  All rights reserved.
+Reading design processor_toplevel.ngc ...
+WARNING:NetListWriters:298 - No output is written to processor_toplevel.xncf,
+   ignored.
+Processing design ...
+   Preping design's networks ...
+   Preping design's macros ...
+WARNING:NetListWriters:306 - Signal bus addressbus<11 : 0> on block
+   processor_toplevel is not reconstructed, because there are some missing bus
+   signals.
+WARNING:NetListWriters:306 - Signal bus test/outBuff<15 : 0> on block
+   processor_toplevel is not reconstructed, because there are some missing bus
+   signals.
+  finished :Prep
+Writing EDIF netlist file processor_toplevel.edif ...
+ngc2edif: Total memory usage is 86504 kilobytes
+
+Release 14.7 - ngc2edif P.20131013 (nt64)
+Copyright (c) 1995-2013 Xilinx, Inc.  All rights reserved.
+Reading design processor_toplevel.ngc ...
+WARNING:NetListWriters:298 - No output is written to processor_toplevel.xncf,
+   ignored.
+Processing design ...
+   Preping design's networks ...
+   Preping design's macros ...
+WARNING:NetListWriters:306 - Signal bus addressbus<11 : 0> on block
+   processor_toplevel is not reconstructed, because there are some missing bus
+   signals.
+WARNING:NetListWriters:306 - Signal bus test/outBuff<15 : 0> on block
+   processor_toplevel is not reconstructed, because there are some missing bus
+   signals.
+  finished :Prep
+Writing EDIF netlist file processor_toplevel.edif ...
+ngc2edif: Total memory usage is 86952 kilobytes
+

@@ -21,6 +21,7 @@ end testbench;
 architecture Behavioral of testbench is
    signal clk, reset: std_logic;
    signal hsync, vsync, red, green, blue: std_logic;
+   signal write_en: std_logic := '0';
 
 begin
    vga_unit: entity vga_controller(Simulation)
@@ -28,8 +29,8 @@ begin
       clk         => clk,
       reset       => reset,
       addressbus  => (others => '0'),
-      dataIN      => (others => '0'),
-      we          => '0',
+      dataIN      => x"2058",
+      we          => write_en,
       hsync       => hsync,
       vsync       => vsync,
       red         => red,
@@ -56,6 +57,20 @@ begin
    clk <= tmp_clk;
    wait for 10 ns;
 end process clock_driver;
+
+test_write_mem: process(clk)
+   variable counter : integer := 0;
+begin
+   if rising_edge(clk) then
+      write_en <= '0';
+      if ( counter < 200000 ) then  -- wait for 4 ms (appears in second frame)
+         counter := counter + 1;
+      elsif ( counter = 200000 ) then
+         counter := counter + 1;
+         write_en <= '1';
+      end if;
+   end if;
+end process test_write_mem;
 
 end Behavioral;
 

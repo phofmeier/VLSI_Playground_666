@@ -1,8 +1,8 @@
 INTSTYLE=ise
-INFILE=C:\NICKI\Studium\Semester 8\VLSI\Project_Group3\UKM910\ise_project\processor_toplevel.ncd
-OUTFILE=C:\NICKI\Studium\Semester 8\VLSI\Project_Group3\UKM910\ise_project\processor_toplevel.bit
+INFILE=C:\Users\feixn\Desktop\VLSI\Project_Group3\UKM910\ise_project\processor_toplevel.ncd
+OUTFILE=C:\Users\feixn\Desktop\VLSI\Project_Group3\UKM910\ise_project\processor_toplevel.bit
 FAMILY=Spartan3E
 PART=xc3s500e-4fg320
-WORKINGDIR=C:\NICKI\Studium\Semester 8\VLSI\Project_Group3\UKM910\ise_project
-LICENSE=WebPack
-USER_INFO=211350036_0_0_715
+WORKINGDIR=C:\Users\feixn\Desktop\VLSI\Project_Group3\UKM910\ise_project
+LICENSE=ISE
+USER_INFO=176561207_177366434_210619371_861
