@@ -505,6 +505,8 @@ multiplyErr:                    # if error occured, only set error flag and leav
           
           .type divide, @function
 divide: # first make all input numbers positive and check if division result needs to be negated
+		  load	poArg2
+		  bz	divideThroughZero
           load  const0
           store poResult        # set poResult to definite 0   
           store negResult
@@ -577,6 +579,14 @@ divideNeg:
           store poResult
 divideFinish:
           ret
+		  
+divideThroughZero:
+		  load  txtDivideThroughZero    # then output message
+          store $ptr2
+          call  outputText
+		  load  const1     # otherwise, set error bit
+          store error
+		  ret
 
 
 
@@ -983,6 +993,9 @@ txtResultAddr: getaddr txtResult
 
 txtWelcome: .ascii "Welcome to the ultimate LME calculator! \0\0"
 txtWelcomeAddr: getaddr txtWelcome
+
+txtDivideThroughZero: .ascii "Really??? \0\0"
+txtDivideThroughZeroAddr: getaddr txtDivideThroughZero
 
 
 .set    keyboardAddr,  0x0FFF << 1 # Adress for the Keyboard
