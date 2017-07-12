@@ -581,6 +581,7 @@ divideFinish:
           ret
 		  
 divideThroughZero:
+		  call outputNewLine
 		  load  txtDivideThroughZero    # then output message
           store $ptr2
           call  outputText
