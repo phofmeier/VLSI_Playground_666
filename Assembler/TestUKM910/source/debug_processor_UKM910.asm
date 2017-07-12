@@ -188,21 +188,21 @@ bn_ok:
 # STORERIinc/LOADRIinc 8 -----------------------------
 	call wait_for_knop
 	load	Array_1_addr
-	store	$ptr2
+	store	$ptr1
 	load	const_10
-	store	($ptr2)inc
+	store	($ptr1)inc
 	load	const_9
-	store	($ptr2)inc
+	store	($ptr1)inc
 	load	const_5
-	store	($ptr2)inc
+	store	($ptr1)inc
 	load	Array_1_addr
-	store	$ptr2
-	load	($ptr2)inc
+	store	$ptr1
+	load	($ptr1)inc
 	store	test_var
-	load	($ptr2)inc
+	load	($ptr1)inc
 	add		test_var
 	store	test_var
-	load	($ptr2)inc
+	load	($ptr1)inc
 	add		test_var
 	store	test_var
 	sub		const_16
@@ -211,22 +211,22 @@ bn_ok:
 	call wait_for_knop
 	load	Array_3_addr
 	add		const_1		#increment by 1
-	store	$ptr3
+	store	$ptr1
 	load	const_6
-	store	dec($ptr3)
+	store	dec($ptr1)
 	load	const_5
-	store	dec($ptr3)
+	store	dec($ptr1)
 	load	const_9
-	store	dec($ptr3)
+	store	dec($ptr1)
 	load	Array_3_addr
 	add		const_1		#increment by 1
-	store	$ptr3
-	load	dec($ptr3)
+	store	$ptr1
+	load	dec($ptr1)
 	store	test_var
-	load	dec($ptr3)
+	load	dec($ptr1)
 	add		test_var
 	store	test_var
-	load	dec($ptr3)
+	load	dec($ptr1)
 	add		test_var
 	store	test_var
 	sub		const_11
