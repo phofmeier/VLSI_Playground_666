@@ -657,6 +657,7 @@ outputNewLine:
 			bn		rowOverflow		# check if last row then jump to first row
           ret
 rowOverflow:						# set first row
+			call 	outputClrScreen
 			load 	vgaAddr
 			store	screenLineAddr
 			store	$ptr3
