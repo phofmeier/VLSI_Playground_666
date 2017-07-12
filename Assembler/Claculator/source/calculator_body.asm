@@ -1004,7 +1004,7 @@ vgaAddr:	.word	0x0800 # First Adress for the VGA controller
 
 constNrOfVgaMemory:	.word	0x0640 # Nr. of VGA Memory adresses
 constLineOffset: 	.word	0x0028 # Nr of Characters in One row
-constLastAddr:		.word	0x0E40 # Last Addr
+constLastAddr:		.word	0x0E3F # Last Addr
 constMaxScreenColum: .word	0x004F	# Maximum of char per colum
 
 
