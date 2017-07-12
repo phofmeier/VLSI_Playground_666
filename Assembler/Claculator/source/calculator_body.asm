@@ -987,7 +987,7 @@ txtWelcomeAddr: getaddr txtWelcome
 .set    keyboardAddr,  0x0FFF << 1 # Adress for the Keyboard
 vgaAddr:	.word	0x0800 # First Adress for the VGA controller
 
-constNrOfVgaMemory:	.word	0x063F # Nr. of VGA Memory adresses
+constNrOfVgaMemory:	.word	0x0640 # Nr. of VGA Memory adresses
 constLineOffset: 	.word	0x0028 # Nr of Characters in One row
 constLastAddr:		.word	0x0E40 # Last Addr
 constMaxScreenColum: .word	0x004F	# Maximum of char per colum
@@ -1028,10 +1028,6 @@ dividePos: .word 0x000
 # variables in output functions
 outpchar:   .word 0x000
 
-# bracket pointer frame base
-brFrameBaseAddr: 	getaddr brFrameBase
-brFrameBase: 		.word 0x000
-
 # variables VGA
 count:				.word	0x000
 screenLineAddr:		.word	0x000
@@ -1047,3 +1043,7 @@ OutputNr_1:	.word	0x0000
 OutputNr_2:	.word	0x0000
 OutputNr_3:	.word	0x0000
 OutputNr_4:	.word	0x0000
+
+# bracket pointer frame base
+brFrameBaseAddr: 	getaddr brFrameBase
+brFrameBase: 		.word 0x000
