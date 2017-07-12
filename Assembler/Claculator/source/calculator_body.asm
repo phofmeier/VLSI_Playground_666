@@ -582,7 +582,7 @@ divideFinish:
 		  
 divideThroughZero:
 		  call outputNewLine
-		  load  txtDivideThroughZero    # then output message
+		  load  txtDivideThroughZeroAddr    # then output message
           store $ptr2
           call  outputText
 		  load  const1     # otherwise, set error bit
