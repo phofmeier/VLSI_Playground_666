@@ -30,7 +30,8 @@ end vga_controller;
 architecture Simulation of vga_controller is
    signal mem_data : std_logic_vector(15 downto 0);
    signal addr_int : std_logic_vector(10 downto 0);
-   signal read_en : std_logic;
+   signal read_en  : std_logic := '0';
+   signal colors   : std_logic_vector(5 downto 0) := "011001";
 
 begin
 
@@ -44,8 +45,9 @@ begin
       green       => green,
       blue        => blue,
       mem_data    => mem_data,
-      addr_int    => addr_int,
-      read_en     => read_en
+      addr_rd     => addr_int,
+      read_en     => read_en,
+      colors      => colors
    );
 
    mem_unit: entity vga_memory(Simulation)
@@ -64,9 +66,20 @@ end Simulation;
 
 
 architecture Synthesis of vga_controller is
-   signal mem_data : std_logic_vector(15 downto 0);
-   signal addr_int : std_logic_vector(10 downto 0);
-   signal read_en : std_logic;
+   type STATES is (
+      IDLE, COPY_SPLASH_RD, COPY_SPLASH_WR );
+   signal state, next_state : STATES := IDLE;
+
+   signal data_in, data_out, data_spl : std_logic_vector(15 downto 0);
+   signal addr_rd, addr_wr    : std_logic_vector(10 downto 0);
+   signal addr_spl_next, addr_spl : unsigned(10 downto 0) := (others => '0');
+   signal read_en  : std_logic := '0';
+   signal write_en : std_logic := '0';
+   signal read_spl : std_logic := '0';
+   signal colors, colors_next : std_logic_vector(5 downto 0) := "011001";  -- "rgbrgb"
+
+   constant ADDR_SET_COLOR  : std_logic_vector(10 downto 0) := "11111111110";
+   constant ADDR_CP_SPLASH  : std_logic_vector(10 downto 0) := "11111111101";
 
 begin
 
@@ -79,21 +92,79 @@ begin
       red         => red,
       green       => green,
       blue        => blue,
-      mem_data    => mem_data,
-      addr_int    => addr_int,
-      read_en     => read_en
+      mem_data    => data_out,
+      addr_rd     => addr_rd,
+      read_en     => read_en,
+      colors      => colors
    );
 
    mem_unit: entity vga_memory(Synthesis)
    port map (
       clk         => clk,
-      addr_wr     => addressbus,
-      addr_rd     => addr_int,
-      data_out    => mem_data,
-      data_in     => databus,
-      we          => we,
+      addr_wr     => addr_wr,
+      addr_rd     => addr_rd,
+      data_out    => data_out,
+      data_in     => data_in,
+      we          => write_en,
       oe          => read_en
    );
+
+   mem_splash: entity vga_memory(Synthesis)
+   port map (
+      clk         => clk,
+      addr_wr     => (others => '0'),
+      addr_rd     => addr_wr,
+      data_out    => data_spl,
+      data_in     => (others => '0'),
+      we          => '0',
+      oe          => read_spl
+   );
+
+   process(clk)
+   begin
+      if rising_edge(clk) then
+         state <= next_state;
+         colors <= colors_next;
+         addr_spl <= addr_spl_next;
+      end if;
+   end process;
+   
+   addr_wr <= addressbus when state = IDLE else std_logic_vector(addr_spl);
+
+   process(state, databus, addressbus, colors, we, addr_wr, data_spl)
+   begin
+      write_en    <= '0';
+      read_spl    <= '0';
+      data_in     <= databus;
+      next_state  <= IDLE;
+      colors_next <= colors;
+      addr_spl_next <= (others => '0');
+      case ( state ) is
+         when IDLE =>
+            if ( we = '1' ) then
+               if ( addressbus = ADDR_SET_COLOR ) then
+                  colors_next <= databus(5 downto 0);
+               elsif ( addressbus = ADDR_CP_SPLASH ) then
+                  next_state <= COPY_SPLASH_RD;
+                  addr_spl_next <= (others => '0');
+               else
+                  write_en <= we;
+               end if;
+            end if;
+         when COPY_SPLASH_RD =>
+            read_spl <= '1';
+            data_in  <= data_spl;
+            addr_spl_next <= addr_spl;
+            next_state <= COPY_SPLASH_WR;
+         when COPY_SPLASH_WR =>
+            write_en <= '1';
+            data_in  <= data_spl;
+            addr_spl_next <= addr_spl + 1;
+            if ( addr_wr < x"640" ) then
+               next_state <= COPY_SPLASH_RD;
+            end if;
+      end case;
+   end process;
 
 end Synthesis;
 

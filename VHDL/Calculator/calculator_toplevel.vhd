@@ -79,7 +79,7 @@ begin
       green       => green,
       blue        => blue
    );
-   
+
    ps2_unit: entity PS2_Controller
    port map (
       clk         => clk,
@@ -102,7 +102,7 @@ begin
          sel_mem <= '1';
       elsif ( addressbus = x"FFF" ) then
          sel_ps2 <= '1';
-      elsif ( addressbus < x"E40" ) then  -- 0x800 + 1600
+      elsif ( addressbus < x"E40" or addressbus = x"FFE" or addressbus = x"FFD" ) then  -- 0x800 + 1600
          sel_vga <= '1';
       end if;
    end process address_decode;
@@ -112,7 +112,7 @@ begin
    oe_mem <= sel_mem and oe;
    we_vga <= sel_vga and we;
    oe_ps2 <= sel_ps2 and oe;
-   
+
    -- Connect all unused interrupt lines to const '0'
    interrupt(7 downto 2) <= "000000";
    interrupt(0) <= '0';

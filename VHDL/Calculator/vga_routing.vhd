@@ -23,16 +23,17 @@ entity vga_routing is
           green      : out std_logic;
           blue       : out std_logic;
           mem_data   : in  std_logic_vector(15 downto 0);
-          addr_int   : out std_logic_vector(10 downto 0);
-          read_en    : out std_logic );
+          addr_rd    : out std_logic_vector(10 downto 0);
+          read_en    : out std_logic;
+          colors     : in  std_logic_vector(5 downto 0) );
 end vga_routing;
 
 architecture Behavioral of vga_routing is
    signal pixel_clk, pixel_en, pixel_top, pixel_left: std_logic;
    signal read_en_sig, buffer_en : std_logic;
    signal byte_select : std_logic;
-   signal row_select : std_logic_vector(3 downto 0);
-   signal bit_mask  : std_logic_vector(7 downto 0);
+   signal row_select  : std_logic_vector(3 downto 0);
+   signal bit_mask    : std_logic_vector(7 downto 0);
 
    signal char_reg  : std_logic_vector(15 downto 0);
    signal char_data : std_logic_vector(7 downto 0);
@@ -53,7 +54,7 @@ begin
 
    addr_unit: entity vga_address_gen
    port map (
-      address     => addr_int,
+      address     => addr_rd,
       read_en     => read_en_sig,
       byte_select => byte_select,
       row_select  => row_select,
@@ -72,17 +73,17 @@ begin
       pixel_row   => pixel_row
    );
 
-   image_generator: process(pixel_en, bit_mask, pixel_row)
+   image_generator: process(pixel_en, bit_mask, pixel_row, colors)
    begin
       if ( pixel_en = '1' ) then
          if ( or_reduce(pixel_row and bit_mask) = '1' ) then
-            red   <= '0';
-            green <= '1';
-            blue  <= '1';
+            red   <= colors(2);
+            green <= colors(1);
+            blue  <= colors(0);
          else
-            red   <= '1';
-            green <= '0';
-            blue  <= '0';
+            red   <= colors(5);
+            green <= colors(4);
+            blue  <= colors(3);
          end if;
       else
          red   <= '0';
