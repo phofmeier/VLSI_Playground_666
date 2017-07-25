@@ -1,8 +1,0 @@
-INTSTYLE=ise
-INFILE=C:\Users\feixn\Desktop\VLSI\Project_Group3\Calculator\ise_project\calculator_toplevel.ncd
-OUTFILE=C:\Users\feixn\Desktop\VLSI\Project_Group3\Calculator\ise_project\calculator_toplevel.bit
-FAMILY=Spartan3E
-PART=xc3s500e-4fg320
-WORKINGDIR=C:\Users\feixn\Desktop\VLSI\Project_Group3\Calculator\ise_project
-LICENSE=ISE
-USER_INFO=176561207_177366434_210619371_861

@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <report-views version="2.0" >
  <header>
-  <DateModified>2017-07-11T12:15:28</DateModified>
+  <DateModified>2017-07-25T19:52:29</DateModified>
   <ModuleName>processor_toplevel</ModuleName>
   <SummaryTimeStamp>2017-07-11T10:32:26</SummaryTimeStamp>
-  <SavedFilePath>C:/Users/feixn/Desktop/VLSI/Project_Group3/VGA-Controller/VGA_processor_test/ise_project/iseconfig/processor_toplevel.xreport</SavedFilePath>
-  <ImplementationReportsDirectory>C:/Users/feixn/Desktop/VLSI/Project_Group3/VGA-Controller/VGA_processor_test/ise_project\</ImplementationReportsDirectory>
+  <SavedFilePath>C:/NICKI/Studium/Semester 8/VLSI/Project_Group3/Source/VHDL/VGA_Controller/VGA_processor_test/ise_project/iseconfig/processor_toplevel.xreport</SavedFilePath>
+  <ImplementationReportsDirectory>C:/NICKI/Studium/Semester 8/VLSI/Project_Group3/Source/VHDL/VGA_Controller/VGA_processor_test/ise_project\</ImplementationReportsDirectory>
   <DateInitialized>2017-07-04T11:51:33</DateInitialized>
   <EnableMessageFiltering>false</EnableMessageFiltering>
  </header>
